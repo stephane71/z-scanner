@@ -1,0 +1,145 @@
+# Sprint Status - Z-Scanner
+# Generated: 2026-01-15
+# Source: epics.md (6 epics, 33 stories)
+
+# ============================================================
+# STATUS DEFINITIONS
+# ============================================================
+# Epic statuses: backlog, in-progress, done
+# Story statuses: backlog, ready-for-dev, in-progress, review, done
+# Retrospective statuses: optional, done
+#
+# STATUS TRANSITIONS:
+# - Epic: backlog → in-progress (auto when first story file created)
+#         in-progress → done (manual when all stories complete)
+# - Story: backlog → ready-for-dev (auto when story file created in stories/)
+#          ready-for-dev → in-progress (manual when dev starts)
+#          in-progress → review (manual when code-review workflow starts)
+#          review → done (manual after review approval)
+# - Retrospective: optional → done (manual)
+#
+# WORKFLOW NOTES:
+# - SM creates next story file only after previous story is done
+# - Dev marks story as in-progress before starting implementation
+# - Dev initiates code-review when implementation is complete
+# - Parallel work on multiple stories is supported but sequential is recommended
+# ============================================================
+
+project: z-scanner
+generated_at: "2026-01-15T19:30:00Z"
+source_document: "_bmad-output/planning-artifacts/epics.md"
+
+# ------------------------------------------------------------
+# Epic 1: Fondation Projet & Landing Page
+# FRs: FR34, FR35, FR36
+# Stories: 4
+# ------------------------------------------------------------
+epic-1-fondation-projet-landing-page: backlog
+
+1-1-project-initialization-pwa-setup: backlog
+1-2-supabase-backend-setup: backlog
+1-3-landing-page-public: backlog
+1-4-registration-from-landing: backlog
+
+epic-1-retrospective: optional
+
+# ------------------------------------------------------------
+# Epic 2: Authentification Utilisateur
+# FRs: FR1, FR2, FR3, FR4
+# Stories: 5
+# ------------------------------------------------------------
+epic-2-authentification-utilisateur: backlog
+
+2-1-user-login: backlog
+2-2-user-registration-full-flow: backlog
+2-3-password-reset: backlog
+2-4-user-logout: backlog
+2-5-auth-middleware-protected-routes: backlog
+
+epic-2-retrospective: optional
+
+# ------------------------------------------------------------
+# Epic 3: Scan & Validation (Core Flow + Offline)
+# FRs: FR5-FR14, FR30-FR33
+# Stories: 10
+# Critical path - core product value
+# ------------------------------------------------------------
+epic-3-scan-validation-core-flow-offline: backlog
+
+3-1-local-database-schema-dexie-js: backlog
+3-2-camera-capture-ui: backlog
+3-3-ocr-processing-tesseract-js: backlog
+3-4-verification-screen: backlog
+3-5-manual-entry-fallback: backlog
+3-6-ticket-validation-nf525-compliance: backlog
+3-7-photo-archival: backlog
+3-8-sync-queue-indicator: backlog
+3-9-background-sync-engine: backlog
+3-10-app-layout-bottom-navigation: backlog
+
+epic-3-retrospective: optional
+
+# ------------------------------------------------------------
+# Epic 4: Gestion des Tickets & Marchés
+# FRs: FR15-FR22
+# Stories: 7
+# ------------------------------------------------------------
+epic-4-gestion-des-tickets-marches: backlog
+
+4-1-ticket-list-historique: backlog
+4-2-ticket-detail-view: backlog
+4-3-filter-by-date: backlog
+4-4-filter-by-market: backlog
+4-5-market-management-crud: backlog
+4-6-assign-ticket-to-market: backlog
+4-7-ticket-cancellation-nf525-compliant: backlog
+
+epic-4-retrospective: optional
+
+# ------------------------------------------------------------
+# Epic 5: Export Comptable
+# FRs: FR23, FR24, FR25
+# Stories: 3
+# ------------------------------------------------------------
+epic-5-export-comptable: backlog
+
+5-1-export-page-period-selection: backlog
+5-2-csv-export-generation: backlog
+5-3-file-download: backlog
+
+epic-5-retrospective: optional
+
+# ------------------------------------------------------------
+# Epic 6: Dashboard & Insights
+# FRs: FR26, FR27, FR28, FR29
+# Stories: 4
+# ------------------------------------------------------------
+epic-6-dashboard-insights: backlog
+
+6-1-activity-dashboard: backlog
+6-2-sales-by-period: backlog
+6-3-sales-by-market: backlog
+6-4-settings-page: backlog
+
+epic-6-retrospective: optional
+
+# ============================================================
+# SUMMARY
+# ============================================================
+# Total Epics: 6
+# Total Stories: 33
+# Total Retrospectives: 6
+#
+# By Status:
+#   backlog: 33 stories, 6 epics
+#   ready-for-dev: 0
+#   in-progress: 0
+#   review: 0
+#   done: 0
+#
+# Next Steps:
+# 1. Run /bmad:bmm:workflows:create-story to create Story 1.1
+# 2. Implement Story 1.1 with /bmad:bmm:workflows:dev-story
+# 3. Review with /bmad:bmm:workflows:code-review
+# 4. Mark done, then create next story
+# ============================================================

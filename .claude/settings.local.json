@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.claude/hooks/play-tts.sh:*)",
+      "WebSearch",
+      "Skill(bmad:bmm:workflows:generate-project-context)",
+      "Skill(bmad:bmm:workflows:check-implementation-readiness)",
+      "Bash(ls:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "agentvibes"
+  ]
+}
