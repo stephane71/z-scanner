@@ -56,11 +56,13 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Public auth routes (landing, login, register)
+  // Public auth routes (landing, login, register, password reset)
   const isAuthRoute =
     pathname === '/' ||
     pathname === '/login' ||
-    pathname === '/register'
+    pathname === '/register' ||
+    pathname === '/reset-password' ||
+    pathname.startsWith('/reset-password/')
 
   // Protected routes (require authentication)
   const isProtectedRoute =

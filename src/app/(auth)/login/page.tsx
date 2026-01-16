@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { LoginForm } from '@/components/features/auth/LoginForm'
 
 export const metadata: Metadata = {
@@ -33,8 +34,10 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Login Form */}
-        <LoginForm />
+        {/* Login Form - Wrapped in Suspense for useSearchParams */}
+        <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-muted" />}>
+          <LoginForm />
+        </Suspense>
       </div>
     </div>
   )

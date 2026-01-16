@@ -47,6 +47,40 @@ export const loginSchema = z.object({
 export type LoginFormData = z.infer<typeof loginSchema>
 
 /**
+ * Reset password request form validation schema.
+ *
+ * Validates:
+ * - Email: required, valid email format
+ *
+ * Error messages are in French per project requirements.
+ */
+export const resetPasswordSchema = z.object({
+  email: z
+    .string()
+    .min(1, "L'email est requis")
+    .email("Format d'email invalide"),
+})
+
+export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
+
+/**
+ * Update password form validation schema.
+ *
+ * Validates:
+ * - Password: required, minimum 8 characters
+ *
+ * Error messages are in French per project requirements.
+ */
+export const updatePasswordSchema = z.object({
+  password: z
+    .string()
+    .min(1, 'Le mot de passe est requis')
+    .min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
+})
+
+export type UpdatePasswordFormData = z.infer<typeof updatePasswordSchema>
+
+/**
  * Validates registration form data and returns field-specific errors.
  *
  * @param data - Form data to validate

@@ -6,10 +6,14 @@ import { LoginForm } from './LoginForm'
 // Mock next/navigation
 const mockPush = vi.fn()
 const mockRefresh = vi.fn()
+const mockGet = vi.fn()
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
     refresh: mockRefresh,
+  }),
+  useSearchParams: () => ({
+    get: mockGet,
   }),
 }))
 
@@ -26,6 +30,7 @@ vi.mock('@/lib/supabase/client', () => ({
 describe('LoginForm', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockGet.mockReturnValue(null) // Default: no search params
   })
 
   // AC #1: Form displays with email/password fields, labels above inputs
@@ -302,5 +307,29 @@ describe('LoginForm', () => {
         screen.getByText(/une erreur est survenue. veuillez réessayer/i)
       ).toBeInTheDocument()
     })
+  })
+
+  // AC #7 (Story 2.3): Display success message after password reset
+  it('should display success message when password-reset-success query param is present', () => {
+    mockGet.mockImplementation((key: string) => {
+      if (key === 'message') return 'password-reset-success'
+      return null
+    })
+
+    render(<LoginForm />)
+
+    expect(
+      screen.getByText(/mot de passe mis à jour/i)
+    ).toBeInTheDocument()
+  })
+
+  it('should not display success message when no query param is present', () => {
+    mockGet.mockReturnValue(null)
+
+    render(<LoginForm />)
+
+    expect(
+      screen.queryByText(/mot de passe mis à jour/i)
+    ).not.toBeInTheDocument()
   })
 })
