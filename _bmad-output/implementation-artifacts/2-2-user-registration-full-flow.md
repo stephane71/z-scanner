@@ -1,6 +1,6 @@
 # Story 2.2: User Registration (Full Flow)
 
-Status: review
+Status: done
 
 ## Story
 
@@ -390,3 +390,4 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 |------|--------|--------|
 | 2026-01-16 | Story created with comprehensive developer context | Claude Opus 4.5 |
 | 2026-01-16 | Validated existing implementation, applied accessibility fix (aria-live), added test for router.refresh() | Claude Opus 4.5 |
+| 2026-01-16 | Code review approved - added 4 tests: form preservation, network error, aria-live, aria-invalid (133 tests) | Claude Opus 4.5 |

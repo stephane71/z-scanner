@@ -217,4 +217,107 @@ describe('RegisterForm', () => {
       ).toBeInTheDocument()
     })
   })
+
+  // AC #3: Form preserves email value on error (not cleared)
+  it('should preserve email value when auth error occurs', async () => {
+    const user = userEvent.setup()
+    mockSignUp.mockResolvedValue({
+      data: null,
+      error: { message: 'User already registered' },
+    })
+
+    render(<RegisterForm />)
+
+    const emailInput = screen.getByLabelText(/email/i)
+    const passwordInput = screen.getByLabelText(/mot de passe/i)
+
+    await user.type(emailInput, 'existing@example.com')
+    await user.type(passwordInput, 'password123')
+
+    const submitButton = screen.getByRole('button', {
+      name: /créer mon compte/i,
+    })
+    await user.click(submitButton)
+
+    // Wait for error to appear
+    await waitFor(() => {
+      expect(
+        screen.getByText(/un compte existe déjà avec cet email/i)
+      ).toBeInTheDocument()
+    })
+
+    // Email should still contain the entered value (not cleared)
+    expect(emailInput).toHaveValue('existing@example.com')
+  })
+
+  // Network exception handling (catch block coverage)
+  it('should handle network exception gracefully', async () => {
+    const user = userEvent.setup()
+    mockSignUp.mockRejectedValue(new Error('Network error'))
+
+    render(<RegisterForm />)
+
+    const emailInput = screen.getByLabelText(/email/i)
+    const passwordInput = screen.getByLabelText(/mot de passe/i)
+
+    await user.type(emailInput, 'test@example.com')
+    await user.type(passwordInput, 'password123')
+
+    const submitButton = screen.getByRole('button', {
+      name: /créer mon compte/i,
+    })
+    await user.click(submitButton)
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/une erreur est survenue. veuillez réessayer/i)
+      ).toBeInTheDocument()
+    })
+  })
+
+  // Accessibility: Error banner has aria-live for screen readers
+  it('should have accessible error banner with aria-live attribute', async () => {
+    const user = userEvent.setup()
+    mockSignUp.mockResolvedValue({
+      data: null,
+      error: { message: 'User already registered' },
+    })
+
+    render(<RegisterForm />)
+
+    const emailInput = screen.getByLabelText(/email/i)
+    const passwordInput = screen.getByLabelText(/mot de passe/i)
+
+    await user.type(emailInput, 'test@example.com')
+    await user.type(passwordInput, 'password123')
+
+    const submitButton = screen.getByRole('button', {
+      name: /créer mon compte/i,
+    })
+    await user.click(submitButton)
+
+    await waitFor(() => {
+      const alert = screen.getByRole('alert')
+      expect(alert).toBeInTheDocument()
+      expect(alert).toHaveAttribute('aria-live', 'polite')
+    })
+  })
+
+  // Accessibility: Invalid fields have aria-invalid and aria-describedby
+  it('should have accessible validation errors with aria attributes', async () => {
+    const user = userEvent.setup()
+    render(<RegisterForm />)
+
+    const emailInput = screen.getByLabelText(/email/i)
+    await user.type(emailInput, 'invalid-email')
+    await user.tab() // blur to trigger validation
+
+    await waitFor(() => {
+      expect(emailInput).toHaveAttribute('aria-invalid', 'true')
+      expect(emailInput).toHaveAttribute('aria-describedby', 'email-error')
+    })
+
+    const errorMessage = screen.getByText(/format d'email invalide/i)
+    expect(errorMessage).toHaveAttribute('id', 'email-error')
+  })
 })
