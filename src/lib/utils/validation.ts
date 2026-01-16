@@ -23,6 +23,30 @@ export const registerSchema = z.object({
 export type RegisterFormData = z.infer<typeof registerSchema>
 
 /**
+ * Login form validation schema.
+ *
+ * Validates:
+ * - Email: required, valid email format
+ * - Password: required (no minimum length for login - only check presence)
+ *
+ * Error messages are in French per project requirements.
+ *
+ * SECURITY: Password validation is intentionally minimal for login.
+ * Don't reveal password requirements that could help attackers.
+ */
+export const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, "L'email est requis")
+    .email("Format d'email invalide"),
+  password: z
+    .string()
+    .min(1, 'Le mot de passe est requis'),
+})
+
+export type LoginFormData = z.infer<typeof loginSchema>
+
+/**
  * Validates registration form data and returns field-specific errors.
  *
  * @param data - Form data to validate
