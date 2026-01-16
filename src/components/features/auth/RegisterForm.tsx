@@ -69,11 +69,12 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Auth Error Banner */}
+      {/* Auth Error Banner - aria-live for screen reader accessibility per WCAG 2.1 AA */}
       {authError && (
         <div
           className="rounded-lg border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive"
           role="alert"
+          aria-live="polite"
         >
           {authError}
         </div>

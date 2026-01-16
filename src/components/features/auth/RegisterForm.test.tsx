@@ -159,6 +159,8 @@ describe('RegisterForm', () => {
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/scan')
+      // Verify router.refresh() is also called to update auth state
+      expect(mockRefresh).toHaveBeenCalled()
     })
   })
 
