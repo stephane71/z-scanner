@@ -50,7 +50,38 @@ export async function middleware(request: NextRequest) {
   // IMPORTANT: Do NOT use getSession() - it doesn't validate the JWT.
   // Always use getUser() which validates the JWT against Supabase servers.
   // This is critical for security - getSession() can be spoofed.
-  await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const { pathname } = request.nextUrl
+
+  // Public auth routes (landing, login, register)
+  const isAuthRoute =
+    pathname === '/' ||
+    pathname === '/login' ||
+    pathname === '/register'
+
+  // Protected routes (require authentication)
+  const isProtectedRoute =
+    pathname.startsWith('/scan') ||
+    pathname.startsWith('/tickets') ||
+    pathname.startsWith('/export') ||
+    pathname.startsWith('/settings')
+
+  // If user is logged in and tries to access auth routes, redirect to /scan
+  if (user && isAuthRoute && pathname !== '/') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/scan'
+    return NextResponse.redirect(url)
+  }
+
+  // If user is not logged in and tries to access protected routes, redirect to /login
+  if (!user && isProtectedRoute) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
 
   return supabaseResponse
 }
