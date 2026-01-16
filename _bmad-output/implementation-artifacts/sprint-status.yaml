@@ -38,7 +38,7 @@ epic-1-fondation-projet-landing-page: in-progress
 
 1-1-project-initialization-pwa-setup: done
 1-2-supabase-backend-setup: done
-1-3-landing-page-public: backlog
+1-3-landing-page-public: done
 1-4-registration-from-landing: backlog
 
 epic-1-retrospective: optional
@@ -131,15 +131,11 @@ epic-6-retrospective: optional
 # Total Retrospectives: 6
 #
 # By Status:
-#   backlog: 33 stories, 6 epics
-#   ready-for-dev: 0
-#   in-progress: 0
-#   review: 0
-#   done: 0
+#   done: 3 stories (1.1, 1.2, 1.3)
+#   backlog: 30 stories
+#   in-progress: 1 epic (Epic 1)
 #
 # Next Steps:
-# 1. Run /bmad:bmm:workflows:create-story to create Story 1.1
-# 2. Implement Story 1.1 with /bmad:bmm:workflows:dev-story
-# 3. Review with /bmad:bmm:workflows:code-review
-# 4. Mark done, then create next story
+# 1. Create Story 1.4 (Registration from Landing) with /bmad:bmm:workflows:create-story
+# 2. Implement Story 1.4 with /bmad:bmm:workflows:dev-story
 # ============================================================
