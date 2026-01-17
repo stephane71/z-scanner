@@ -44,3 +44,11 @@ export {
   markCompleted,
   markFailed,
 } from './useSyncQueue';
+
+// Camera hooks
+export {
+  useCamera,
+  type CameraError,
+  type CameraErrorType,
+  type UseCameraResult,
+} from './useCamera';

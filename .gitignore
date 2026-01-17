@@ -50,3 +50,5 @@ next-env.d.ts
 
 # Claude-mem auto-generated context files
 **/CLAUDE.md
+
+certificates
