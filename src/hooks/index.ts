@@ -1,4 +1,46 @@
-// Custom React hooks - to be implemented as needed
-// Exports all custom hooks
+/**
+ * Custom React hooks for Z-Scanner
+ * Re-exports all hooks for convenient imports
+ */
 
-export {};
+// Ticket hooks
+export {
+  useTickets,
+  useTicketById,
+  useTicketsByStatus,
+  useTicketsByMarket,
+  useTicketsCount,
+  addTicket,
+  getTicket,
+  validateTicket,
+  cancelTicket,
+} from './useTickets';
+
+// Market hooks
+export {
+  useMarkets,
+  useMarketById,
+  useMarketsCount,
+  addMarket,
+  getMarket,
+  updateMarketName,
+  deleteMarket,
+  restoreMarket,
+} from './useMarkets';
+
+// Sync queue hooks
+export {
+  usePendingSyncItems,
+  useSyncQueueStats,
+  useFailedSyncItems,
+  useHasPendingSync,
+  addToSyncQueue,
+  queueCreate,
+  queueCancel,
+  updateSyncStatus,
+  incrementRetry,
+  getNextPendingItem,
+  markInProgress,
+  markCompleted,
+  markFailed,
+} from './useSyncQueue';

@@ -1,4 +1,21 @@
-// Shared TypeScript types - to be implemented as needed
-// Core domain types (Ticket, User, Market, etc.)
+/**
+ * Shared TypeScript types for Z-Scanner
+ * Re-exports all domain types for convenient imports
+ */
 
-export {};
+// Ticket types
+export type { Ticket, TicketFormData, TicketStatus } from './ticket';
+
+// Photo types
+export type { Photo } from './photo';
+
+// Sync queue types
+export type {
+  SyncQueueItem,
+  SyncStatus,
+  SyncAction,
+  SyncEntityType,
+} from './sync';
+
+// Market types
+export type { Market } from './market';

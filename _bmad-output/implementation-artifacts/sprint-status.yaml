@@ -64,9 +64,9 @@ epic-2-retrospective: optional
 # Stories: 10
 # Critical path - core product value
 # ------------------------------------------------------------
-epic-3-scan-validation-core-flow-offline: backlog
+epic-3-scan-validation-core-flow-offline: in-progress
 
-3-1-local-database-schema-dexie-js: backlog
+3-1-local-database-schema-dexie-js: done
 3-2-camera-capture-ui: backlog
 3-3-ocr-processing-tesseract-js: backlog
 3-4-verification-screen: backlog
