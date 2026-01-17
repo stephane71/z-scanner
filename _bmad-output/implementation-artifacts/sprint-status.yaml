@@ -48,13 +48,13 @@ epic-1-retrospective: done
 # FRs: FR1, FR2, FR3, FR4
 # Stories: 5
 # ------------------------------------------------------------
-epic-2-authentification-utilisateur: in-progress
+epic-2-authentification-utilisateur: done
 
 2-1-user-login: done
 2-2-user-registration-full-flow: done
 2-3-password-reset: done
 2-4-user-logout: done
-2-5-auth-middleware-protected-routes: backlog
+2-5-auth-middleware-protected-routes: done
 
 epic-2-retrospective: optional
 
@@ -131,11 +131,12 @@ epic-6-retrospective: optional
 # Total Retrospectives: 6
 #
 # By Status:
-#   done: 8 stories (1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4) + Epic 1 complete
-#   in-progress: 1 epic (Epic 2 - 4/5 stories done)
-#   backlog: 25 stories, 4 epics
+#   done: 9 stories (1.1-1.4, 2.1-2.5) + Epic 1 complete + Epic 2 complete!
+#   in-progress: 0 epics
+#   backlog: 24 stories, 4 epics
 #
 # Next Steps:
-# 1. Create Story 2.5 (Auth Middleware Protected Routes): /bmad:bmm:workflows:create-story
-# 2. Implement Story 2.5 to complete Epic 2: /bmad:bmm:workflows:dev-story
+# 1. (Optional) Run Epic 2 retrospective: /bmad:bmm:workflows:retrospective
+# 2. Start Epic 3 (Scan & Validation - Core Flow): /bmad:bmm:workflows:create-story
+# 3. First story: 3.1 local-database-schema-dexie-js
 # ============================================================

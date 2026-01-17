@@ -12,6 +12,19 @@ import { NextResponse, type NextRequest } from 'next/server'
  * SECURITY: Always use getUser() instead of getSession() for server-side auth.
  * getUser() validates the JWT against Supabase servers, while getSession()
  * only reads from cookies without validation.
+ *
+ * OFFLINE GRACE PERIOD (Epic 3 Integration):
+ * TODO: Implement 7-day offline grace period per architecture requirements.
+ * When JWT expires while offline:
+ * 1. Check navigator.onLine status (client-side via service worker)
+ * 2. If offline AND JWT expired:
+ *    - Check last successful sync timestamp from Dexie IndexedDB
+ *    - If within 7 days → allow local data access (read-only mode)
+ *    - If > 7 days → force re-authentication on reconnect
+ * 3. This requires Story 3.1 (Dexie database) to be implemented first.
+ *
+ * @see architecture.md#Authentication-Security for 30-day JWT + 7-day offline grace
+ * @see Story 3.1 (local-database-schema-dexie-js) for IndexedDB implementation
  */
 export async function middleware(request: NextRequest) {
   // Validate environment variables early with clear error messages
