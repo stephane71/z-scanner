@@ -1,6 +1,7 @@
 /**
  * Unit tests for ScanPageClient component
  * Story 3.2: Camera Capture UI - Task 8
+ * Story 3.3: OCR Processing integration
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -30,10 +31,12 @@ vi.mock('@/lib/utils/image', () => ({
 
 const mockDbTicketsAdd = vi.fn();
 const mockDbPhotosAdd = vi.fn();
+const mockDbTicketsUpdate = vi.fn();
 vi.mock('@/lib/db', () => ({
   db: {
     tickets: {
       add: (data: unknown) => mockDbTicketsAdd(data),
+      update: (id: number, data: unknown) => mockDbTicketsUpdate(id, data),
     },
     photos: {
       add: (data: unknown) => mockDbPhotosAdd(data),
@@ -41,7 +44,19 @@ vi.mock('@/lib/db', () => ({
   },
 }));
 
-// Mock CameraView to capture onCapture callback
+// Mock OCR hook
+const mockProcessImage = vi.fn();
+vi.mock('@/hooks', () => ({
+  useOCR: () => ({
+    processImage: mockProcessImage,
+    isProcessing: false,
+    error: null,
+    status: null,
+    clearError: vi.fn(),
+  }),
+}));
+
+// Mock CameraView and OCR components to capture onCapture callback
 const mockOnCapture = vi.fn();
 vi.mock('@/components/features/scanner', () => ({
   CameraView: ({ onCapture, isProcessing }: { onCapture: (blob: Blob) => void; isProcessing?: boolean }) => {
@@ -58,6 +73,16 @@ vi.mock('@/components/features/scanner', () => ({
       </div>
     );
   },
+  OcrLoading: ({ message }: { message?: string }) => (
+    <div data-testid="ocr-loading">{message || 'Loading...'}</div>
+  ),
+  OcrError: ({ error, onRetry, onManualEntry }: { error: { message: string }; onRetry?: () => void; onManualEntry?: () => void }) => (
+    <div data-testid="ocr-error">
+      <p>{error.message}</p>
+      {onRetry && <button onClick={onRetry}>Retry</button>}
+      {onManualEntry && <button onClick={onManualEntry}>Manual</button>}
+    </div>
+  ),
 }));
 
 import { ScanPageClient } from './ScanPageClient';
@@ -81,6 +106,21 @@ describe('ScanPageClient', () => {
 
     mockDbTicketsAdd.mockResolvedValue(42); // ticket ID
     mockDbPhotosAdd.mockResolvedValue(1); // photo ID
+    mockDbTicketsUpdate.mockResolvedValue(undefined);
+
+    // OCR mock - return successful OCR result by default
+    mockProcessImage.mockResolvedValue({
+      date: '2026-01-18',
+      totalTTC: 4250,
+      modeReglement: 'CB',
+      numeroTicket: '0042',
+      confidence: {
+        date: 0.95,
+        totalTTC: 0.92,
+        modeReglement: 0.88,
+        numeroTicket: 0.90,
+      },
+    });
   });
 
   afterEach(() => {
@@ -135,7 +175,7 @@ describe('ScanPageClient', () => {
         const ticketData = mockDbTicketsAdd.mock.calls[0][0];
         expect(ticketData.status).toBe('draft');
         expect(ticketData.userId).toBe(mockUserId);
-        expect(ticketData.montantTTC).toBe(0); // placeholder
+        expect(ticketData.total).toBe(0); // Z-ticket placeholder
       });
     });
 
@@ -171,7 +211,7 @@ describe('ScanPageClient', () => {
       });
     });
 
-    it('should set isProcessing to true during capture', async () => {
+    it('should show compressing state during capture', async () => {
       // Make compression slow to observe processing state
       mockCompressTicketImage.mockImplementation(
         () => new Promise((resolve) => setTimeout(resolve, 1000))
@@ -185,10 +225,9 @@ describe('ScanPageClient', () => {
 
       fireEvent.click(screen.getByTestId('capture-button'));
 
-      // Check processing state is passed to CameraView
+      // Check compressing state is shown
       await waitFor(() => {
-        const cameraView = screen.getByTestId('camera-view');
-        expect(cameraView).toHaveAttribute('data-processing', 'true');
+        expect(screen.getByText(/Traitement de l'image/i)).toBeInTheDocument();
       });
     });
   });

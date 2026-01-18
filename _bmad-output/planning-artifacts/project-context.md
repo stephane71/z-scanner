@@ -34,7 +34,7 @@ _AI agent implementation rules. Follow these constraints exactly._
 | Dexie.js | 4.x | IndexedDB + useLiveQuery |
 | Supabase | 2.x | PostgreSQL + Auth + Storage |
 | @noble/hashes | 1.x | SHA-256 NF525 compliance |
-| Tesseract.js | latest | Local OCR processing |
+| @anthropic-ai/sdk | ^0.x | Claude 3.5 Haiku Vision API (OCR) |
 | Zod | latest | Shared validation schemas |
 | Vitest | latest | Unit testing |
 

@@ -52,3 +52,6 @@ export {
   type CameraErrorType,
   type UseCameraResult,
 } from './useCamera';
+
+// OCR hooks
+export { useOCR, type UseOcrResult } from './useOCR';
