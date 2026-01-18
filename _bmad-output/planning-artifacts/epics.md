@@ -108,7 +108,7 @@ This document provides the complete epic and story breakdown for Z-Scanner, deco
 - Serwist 9.5.0 Service Worker: precaching, runtime caching, background sync
 - Dexie.js 4.x: IndexedDB schema with migrations, useLiveQuery hooks
 - NF525 compliance: append-only tables, SHA-256 hash (@noble/hashes), 6-year retention
-- OCR engine: Tesseract.js for local processing
+- OCR engine: Claude Haiku 4.5 Vision API (server-side) with deferred queue for offline support
 - Auth: JWT 30 days duration, 7-day offline grace period
 - Sync: Queue-based with 5 retries, exponential backoff (1s→16s)
 - Image optimization: WebP 80% (~100KB) + thumbnail 60% (~10KB)
@@ -185,7 +185,7 @@ Permet aux utilisateurs de créer un compte et accéder à leurs données person
 ### Epic 3: Scan & Validation (Core Flow + Offline)
 Permet aux utilisateurs de scanner, vérifier et valider un ticket Z en moins de 2 minutes, même sans connexion internet. C'est le coeur de la valeur produit.
 **FRs couverts:** FR5, FR6, FR7, FR8, FR9, FR10, FR11, FR12, FR13, FR14, FR30, FR31, FR32, FR33
-**Implementation notes:** Tesseract.js OCR, Dexie.js local storage, sync queue, NF525 compliance (append-only, SHA-256, crypto timestamp), WebP compression, validation feedback (animation + haptic).
+**Implementation notes:** Claude Haiku 4.5 Vision API for OCR (via /api/ocr with deferred queue for offline), Dexie.js local storage, sync queue (OCR Queue > Tickets > Photos priority), NF525 compliance (append-only, SHA-256, crypto timestamp), WebP compression, validation feedback (animation + haptic).
 
 ### Epic 4: Gestion des Tickets & Marchés
 Permet aux utilisateurs de consulter leur historique, filtrer, organiser leurs tickets et gérer leurs points de vente.
@@ -431,7 +431,7 @@ So that **I can digitize my sales data** (FR5).
 **Then** a clear message explains camera is required
 **And** a button to retry permission is shown
 
-### Story 3.3: OCR Processing (Tesseract.js)
+### Story 3.3: OCR Processing (Claude Haiku 4.5 API)
 
 As a **user**,
 I want **the app to automatically extract data from my ticket photo**,
@@ -439,16 +439,23 @@ So that **I don't have to type everything manually** (FR6, FR30).
 
 **Acceptance Criteria:**
 
-**Given** I have captured a ticket photo
+**Given** I have captured a ticket photo and I am online
 **When** OCR processing runs
-**Then** Tesseract.js processes the image locally (works offline - FR30)
+**Then** the photo is sent to /api/ocr which calls Claude Haiku 4.5 Vision API
 **And** a loading spinner is shown (max 5s per NFR-P1)
 **And** extracted fields include: date, total TTC, mode de règlement, numéro ticket
+**And** confidence scores are returned for each field
+
+**Given** I have captured a ticket photo and I am offline
+**When** OCR processing is requested
+**Then** the ticket is created with status "pending_ocr"
+**And** the photo is queued for OCR processing when online
+**And** I can proceed with manual entry or wait for sync (FR30)
 
 **Given** OCR completes successfully
 **When** results are available
 **Then** extracted values are displayed on the verification screen
-**And** confidence indicators show extraction quality
+**And** confidence indicators show extraction quality (~95% accuracy)
 
 **Given** OCR fails or produces low-confidence results
 **When** the threshold is not met
@@ -561,7 +568,7 @@ So that **I don't have to think about backups** (FR33).
 **Given** there are items in the syncQueue
 **When** network connectivity is restored
 **Then** the sync engine processes the queue automatically
-**And** tickets metadata syncs before photos (priority per architecture)
+**And** OCR queue items sync first (to unblock validation), then tickets metadata, then photos
 **And** each item retries up to 5 times with exponential backoff (1s→2s→4s→8s→16s)
 
 **Given** a sync item succeeds

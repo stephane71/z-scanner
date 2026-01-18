@@ -117,7 +117,10 @@ npm install @supabase/supabase-js @supabase/ssr
 # 5. Crypto pour NF525 (hash integrity)
 npm install @noble/hashes
 
-# 6. UI Components
+# 6. Claude API pour OCR
+npm install @anthropic-ai/sdk
+
+# 7. UI Components
 npx shadcn@latest init
 ```
 
@@ -192,6 +195,7 @@ npx shadcn@latest init
 | @supabase/supabase-js | ^2.x | Backend client |
 | @supabase/ssr | ^0.x | Server components |
 | @noble/hashes | ^1.x | SHA-256 NF525 |
+| @anthropic-ai/sdk | ^0.x | Claude Haiku 4.5 OCR API |
 
 **Note:** L'initialisation du projet sera la première story d'implémentation.
 
@@ -201,7 +205,7 @@ npx shadcn@latest init
 ### Decision Priority Analysis
 
 **Critical Decisions (Block Implementation):**
-- OCR Engine: Tesseract.js
+- OCR Engine: Claude Haiku 4.5 API (queue différée, offline-compatible)
 - Auth: Supabase Email/Password + JWT 30j
 - API: Next.js API Routes exclusively
 - Storage: Dexie.js (local) + Supabase (remote)
@@ -213,7 +217,7 @@ npx shadcn@latest init
 - Monitoring: Sentry + Vercel Analytics
 
 **Deferred Decisions (Post-MVP):**
-- Custom TensorFlow.js OCR model (si précision insuffisante)
+- Tesseract.js fallback local (si besoin offline OCR sans queue)
 - Playwright E2E tests
 - Staging environment
 
@@ -221,10 +225,46 @@ npx shadcn@latest init
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| OCR Engine | Tesseract.js | MVP rapide, validation utilisateur obligatoire NF525 |
+| OCR Engine | Claude Haiku 4.5 API (queue différée) | Précision ~95% sur tickets thermiques, traitement serveur, offline préservé via queue |
 | Image Format | WebP 80% + Thumbnail 60% | ~100KB original, ~10KB preview, bon compromis qualité/taille |
 | Local Storage | Dexie.js v4.x | Migrations versionnées, useLiveQuery, 6 ans rétention |
 | Remote Storage | Supabase PostgreSQL + Storage | RLS, pas de vendor lock-in, bucket privé |
+
+### OCR Processing Architecture (Queue Différée)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      CLIENT (PWA)                           │
+├─────────────────────────────────────────────────────────────┤
+│  1. Capture photo ticket                                    │
+│  2. Stockage local: photos table (blob + thumbnail)         │
+│  3. Création ticket: status = 'pending_ocr'                 │
+│  4. SI online → Appel API OCR immédiat                      │
+│     SI offline → Queue pour traitement au sync              │
+└────────────────────────┬────────────────────────────────────┘
+                         │ (when online)
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    API ROUTE /api/ocr                       │
+├─────────────────────────────────────────────────────────────┤
+│  1. Réception image (base64 ou multipart)                   │
+│  2. Appel Claude Haiku 4.5 Vision API                       │
+│  3. Extraction structurée: date, montant, marché, vendeur   │
+│  4. Retour JSON avec confidence scores                      │
+│  5. Client met à jour ticket: status = 'pending_validation' │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Flux Offline Préservé:**
+- Photo capturée et stockée localement (IndexedDB)
+- Ticket créé avec `status: 'pending_ocr'` et champs vides
+- Utilisateur peut saisir manuellement sans attendre OCR
+- Au retour online: queue OCR traitée automatiquement
+- Résultats OCR proposés pour validation/correction
+
+**Coût Estimé:**
+- ~$0.001-0.002 par ticket (Claude Haiku vision)
+- 1000 tickets/mois ≈ $2/mois
 
 ### Authentication & Security
 
@@ -241,7 +281,7 @@ npx shadcn@latest init
 |----------|--------|-----------|
 | API Architecture | Next.js API Routes | Contrôle total logique métier + validation NF525 |
 | Sync Retry | 5 tentatives, backoff exponentiel | 1s→2s→4s→8s→16s, notification après échec |
-| Sync Priority | Tickets > Photos | Métadonnées critiques d'abord |
+| Sync Priority | OCR Queue > Tickets > Photos | OCR d'abord pour débloquer validation, puis métadonnées |
 | Photo Sync | Toute connexion | Pas de restriction WiFi-only |
 
 ### Frontend Architecture
@@ -506,6 +546,8 @@ z-scanner/
 │   │       │   └── [id]/route.ts     # GET one
 │   │       ├── sync/
 │   │       │   └── route.ts          # POST sync batch
+│   │       ├── ocr/
+│   │       │   └── route.ts          # POST extract fields via Claude Haiku
 │   │       └── export/
 │   │           └── pdf/route.ts      # POST generate PDF
 │   │
@@ -555,9 +597,10 @@ z-scanner/
 │   │   │   ├── server.ts             # Server client (SSR)
 │   │   │   └── types.ts              # Generated types
 │   │   ├── ocr/
-│   │   │   ├── tesseract.ts          # Tesseract wrapper
-│   │   │   ├── parser.ts             # Parse OCR to fields
-│   │   │   └── tesseract.test.ts
+│   │   │   ├── client.ts             # OCR API client (appel /api/ocr)
+│   │   │   ├── types.ts              # OcrResult, OcrField types
+│   │   │   ├── queue.ts              # OCR queue for offline processing
+│   │   │   └── client.test.ts
 │   │   ├── sync/
 │   │   │   ├── queue.ts              # Sync queue logic
 │   │   │   ├── engine.ts             # Background sync
@@ -600,7 +643,7 @@ z-scanner/
 | Feature (PRD) | Components | API Routes | Lib |
 |---------------|------------|------------|-----|
 | **Auth (FR-AUTH)** | `features/auth/` | `api/auth/` | `supabase/` |
-| **Capture (FR-CAP)** | `features/scanner/` | - | `ocr/`, `lib/db/` |
+| **Capture (FR-CAP)** | `features/scanner/` | `api/ocr/` | `ocr/`, `lib/db/` |
 | **Validation (FR-VAL)** | `features/tickets/TicketForm` | `api/tickets/` | `crypto/`, `utils/validation` |
 | **Gestion (FR-MAN)** | `features/tickets/` | `api/tickets/[id]` | `db/` |
 | **Export (FR-EXP)** | `features/export/` | `api/export/` | `utils/format` |
@@ -646,9 +689,12 @@ z-scanner/
 
 ### Data Flow
 
-1. **Capture Flow:** Camera → OCR (Tesseract) → Form validation → Dexie (local) → Sync Queue
-2. **Sync Flow:** Sync Queue → API Route → Supabase → Update local status
-3. **Read Flow:** useLiveQuery (Dexie) → Component render → UI
+1. **Capture Flow:** Camera → Photo stockée (Dexie) → Ticket créé (status: pending_ocr)
+2. **OCR Flow (online):** Photo → API /api/ocr → Claude Haiku 4.5 → Extraction → Ticket updated (status: pending_validation)
+3. **OCR Flow (offline):** Photo stockée → Queue OCR → Traité au retour online
+4. **Validation Flow:** Résultats OCR → Formulaire pré-rempli → Validation utilisateur → Ticket finalisé
+5. **Sync Flow:** Sync Queue → API Route → Supabase → Update local status
+6. **Read Flow:** useLiveQuery (Dexie) → Component render → UI
 
 
 ## Architecture Validation Results
@@ -678,7 +724,7 @@ All technology choices verified compatible:
 **Functional Requirements (36 FRs):**
 All 8 FR categories have complete architectural support:
 - FR-AUTH → Supabase Auth + JWT offline cache
-- FR-CAP → Tesseract.js + Camera API
+- FR-CAP → Claude Haiku 4.5 Vision API + Camera API + OCR Queue
 - FR-VAL → @noble/hashes + Zod validation
 - FR-MAN → Dexie + useLiveQuery
 - FR-EXP → API Routes + PDF generation
@@ -689,7 +735,7 @@ All 8 FR categories have complete architectural support:
 **Non-Functional Requirements:**
 | Requirement | Architectural Solution |
 |-------------|----------------------|
-| Performance (OCR <5s) | Local Tesseract.js |
+| Performance (OCR <5s) | Claude Haiku 4.5 API (~1-3s) |
 | Security (HTTPS, encryption) | Vercel + Supabase |
 | Reliability (100% offline) | Dexie + Serwist |
 | Compliance (NF525 6 ans) | Append-only + hash integrity |
