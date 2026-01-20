@@ -62,3 +62,10 @@ export {
   type UseVerificationOptions,
   type UseVerificationResult,
 } from './useVerification';
+
+// Manual entry hooks
+export {
+  useManualEntry,
+  type UseManualEntryOptions,
+  type UseManualEntryResult,
+} from './useManualEntry';

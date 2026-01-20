@@ -70,7 +70,7 @@ epic-3-scan-validation-core-flow-offline: in-progress
 3-2-camera-capture-ui: done
 3-3-ocr-processing-claude-haiku-api: done
 3-4-verification-screen: done
-3-5-manual-entry-fallback: backlog
+3-5-manual-entry-fallback: in-progress
 3-6-ticket-validation-nf525-compliance: backlog
 3-7-photo-archival: backlog
 3-8-sync-queue-indicator: backlog
@@ -132,6 +132,7 @@ epic-6-retrospective: optional
 #
 # By Status:
 #   done: 13 stories (1.1-1.4, 2.1-2.5, 3.1-3.4) + Epic 1 complete + Epic 2 complete!
+#   ready-for-dev: 1 story (3.5)
 #   in-progress: Epic 3
 #   backlog: 20 stories, 4 epics
 #

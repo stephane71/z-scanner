@@ -21,6 +21,10 @@ interface ValidateButtonProps {
   className?: string;
   /** Button type */
   type?: 'button' | 'submit';
+  /** Custom label text (default: "VALIDER") */
+  label?: string;
+  /** Loading label text (default: "Validation...") */
+  loadingLabel?: string;
 }
 
 export function ValidateButton({
@@ -29,6 +33,8 @@ export function ValidateButton({
   isLoading = false,
   className = '',
   type = 'button',
+  label = 'VALIDER',
+  loadingLabel = 'Validation...',
 }: ValidateButtonProps) {
   const isDisabled = !isValid || isLoading;
 
@@ -86,7 +92,7 @@ export function ValidateButton({
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             />
           </svg>
-          <span>Validation...</span>
+          <span>{loadingLabel}</span>
         </span>
       ) : (
         <span className="flex items-center justify-center gap-2">
@@ -105,7 +111,7 @@ export function ValidateButton({
               d="M5 13l4 4L19 7"
             />
           </svg>
-          <span>VALIDER</span>
+          <span>{label}</span>
         </span>
       )}
     </button>

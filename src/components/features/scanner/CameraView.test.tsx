@@ -242,4 +242,21 @@ describe('CameraView', () => {
       expect(button).toBeInTheDocument();
     });
   });
+
+  describe('Manual Entry Link', () => {
+    it('should render manual entry link', () => {
+      render(<CameraView onCapture={vi.fn()} />);
+
+      expect(
+        screen.getByRole('link', { name: /saisie manuelle/i })
+      ).toBeInTheDocument();
+    });
+
+    it('should have correct href for manual entry', () => {
+      render(<CameraView onCapture={vi.fn()} />);
+
+      const link = screen.getByRole('link', { name: /saisie manuelle/i });
+      expect(link).toHaveAttribute('href', '/scan/manual');
+    });
+  });
 });

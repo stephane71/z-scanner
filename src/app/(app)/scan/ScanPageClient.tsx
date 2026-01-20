@@ -13,23 +13,12 @@ import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { CameraView, OcrLoading, OcrError } from '@/components/features/scanner';
 import { compressTicketImage } from '@/lib/utils/image';
+import { generateDataHash } from '@/lib/utils/hash';
 import { createClient } from '@/lib/supabase/client';
 import { db } from '@/lib/db';
 import { useOCR } from '@/hooks';
 import type { Ticket, Photo } from '@/types';
 import type { OcrError as OcrErrorType } from '@/lib/ocr/types';
-
-/**
- * Generate SHA-256 hash for NF525 compliance
- * Hash is computed from: date + montantTTC + modeReglement + numeroTicket + userId
- */
-async function generateDataHash(data: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const dataBuffer = encoder.encode(data);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-}
 
 /**
  * UI state for scan flow
@@ -211,16 +200,12 @@ export function ScanPageClient() {
   }, [currentTicketId, currentPhotoBlob, processImage, router]);
 
   /**
-   * Handle manual entry selection
+   * Handle manual entry selection from OcrError
+   * Navigates to /scan/manual for fresh manual entry
    */
   const handleManualEntry = useCallback(() => {
-    if (currentTicketId) {
-      // Navigate to verification screen for manual entry
-      router.push(`/scan/verify/${currentTicketId}?manual=true`);
-    } else {
-      setScanState('camera');
-    }
-  }, [currentTicketId, router]);
+    router.push('/scan/manual');
+  }, [router]);
 
   /**
    * Dismiss error and allow retry

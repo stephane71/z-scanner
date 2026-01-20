@@ -30,3 +30,7 @@ export {
 export { ValidateButton, type ValidateButtonProps } from './ValidateButton';
 export { PaymentEditor, type PaymentEditorProps } from './PaymentEditor';
 export { VerificationForm, type VerificationFormProps } from './VerificationForm';
+
+// Manual entry components (Story 3.5)
+export { ManualEntryHeader, type ManualEntryHeaderProps } from './ManualEntryHeader';
+export { ManualEntryForm, type ManualEntryFormProps } from './ManualEntryForm';

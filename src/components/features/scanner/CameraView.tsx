@@ -9,6 +9,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import Link from 'next/link';
 import { useCamera } from '@/hooks/useCamera';
 import { CaptureButton } from './CaptureButton';
 import { CameraPermissionError } from './CameraPermissionError';
@@ -162,13 +163,19 @@ export function CameraView({ onCapture, isProcessing = false }: CameraViewProps)
         </p>
       </div>
 
-      {/* Capture button in thumb zone */}
-      <div className="absolute bottom-8 left-0 right-0 flex justify-center">
+      {/* Capture button and manual entry link in thumb zone */}
+      <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center gap-3 pb-safe">
         <CaptureButton
           onCapture={handleCapture}
           disabled={!isReady || isProcessing}
           isCapturing={isCapturing}
         />
+        <Link
+          href="/scan/manual"
+          className="text-xs text-white/70 underline hover:text-white transition-colors"
+        >
+          Saisie manuelle
+        </Link>
       </div>
 
       {/* Processing indicator */}

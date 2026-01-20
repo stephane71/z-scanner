@@ -332,4 +332,5 @@ describe('ScanPageClient', () => {
       });
     });
   });
+
 });

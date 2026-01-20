@@ -10,12 +10,14 @@
  * - ocr_complete: OCR processing succeeded, data extracted
  * - ocr_failed: OCR failed after retries, manual entry required
  * - pending_validation: OCR complete, waiting for user validation
+ * - manual_entry: Ticket created via manual entry (no OCR)
  */
 export type OcrStatus =
   | 'pending_ocr'
   | 'ocr_complete'
   | 'ocr_failed'
-  | 'pending_validation';
+  | 'pending_validation'
+  | 'manual_entry';
 
 /**
  * Ticket type - Currently only STATISTIQUES is supported
