@@ -65,18 +65,6 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-/* Dark mode - optional, simplified for MVP */
-@media (prefers-color-scheme: dark) {
-  @theme inline {
-    --color-background: #0F172A;
-    --color-surface: #1E293B;
-    --color-foreground: #F8FAFC;
-    --color-muted: #94A3B8;
-    --color-muted-foreground: #64748B;
-    --color-border: #334155;
-  }
-}
-
 /* Base styles */
 body {
   background-color: var(--color-background);
@@ -93,6 +81,15 @@ body {
 /* Touch-friendly defaults */
 button, a, input, select, textarea {
   min-height: var(--min-touch);
+}
+
+/* Form element text colors - ensure theme colors apply */
+input, select, textarea {
+  color: var(--color-foreground);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--color-muted-foreground);
 }
 
 :root {

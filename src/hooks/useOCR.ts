@@ -6,6 +6,7 @@
 import { useState, useCallback } from 'react';
 import { processOcr, queueForOcr, isOcrError } from '@/lib/ocr';
 import type { OcrResult, OcrStatus, OcrError } from '@/lib/ocr/types';
+import type { Ticket } from '@/types';
 import { db } from '@/lib/db';
 
 /**
@@ -83,22 +84,27 @@ export function useOCR(): UseOcrResult {
         // Process immediately when online
         const result = await processOcr(imageBlob);
 
-        // Update ticket with OCR results (Z-ticket data model)
-        await db.tickets.update(ticketId, {
+        // Build update object - only include fields that have values
+        // Dexie ignores undefined values, so we need to explicitly set all fields
+        const updateData: Partial<Ticket> = {
           ocrStatus: 'ocr_complete' as OcrStatus,
           ocrConfidence: result.confidence,
-          // Z-ticket fields
-          type: result.type ?? undefined,
-          impressionDate: result.impressionDate ?? undefined,
-          lastResetDate: result.lastResetDate ?? undefined,
-          resetNumber: result.resetNumber ?? undefined,
-          ticketNumber: result.ticketNumber ?? undefined,
-          discountValue: result.discountValue ?? undefined,
-          cancelValue: result.cancelValue ?? undefined,
-          cancelNumber: result.cancelNumber ?? undefined,
-          payments: result.payments.length > 0 ? result.payments : undefined,
-          total: result.total ?? undefined,
-        });
+        };
+
+        // Add Z-ticket fields if they have values
+        if (result.type !== null) updateData.type = result.type;
+        if (result.impressionDate !== null) updateData.impressionDate = result.impressionDate;
+        if (result.lastResetDate !== null) updateData.lastResetDate = result.lastResetDate;
+        if (result.resetNumber !== null) updateData.resetNumber = result.resetNumber;
+        if (result.ticketNumber !== null) updateData.ticketNumber = result.ticketNumber;
+        if (result.discountValue !== null) updateData.discountValue = result.discountValue;
+        if (result.cancelValue !== null) updateData.cancelValue = result.cancelValue;
+        if (result.cancelNumber !== null) updateData.cancelNumber = result.cancelNumber;
+        if (result.payments.length > 0) updateData.payments = result.payments;
+        if (result.total !== null) updateData.total = result.total;
+
+        // Update ticket with OCR results
+        await db.tickets.update(ticketId, updateData);
 
         setStatus('ocr_complete');
         return result;

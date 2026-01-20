@@ -8,9 +8,10 @@
 import { useEffect, useState } from 'react';
 
 /**
- * OCR timeout in milliseconds (matches NFR-P1: max 5s)
+ * OCR timeout in milliseconds
+ * Extended to 30s for Claude Vision API processing (see NFR-P1 deviation in Story 3.3)
  */
-const OCR_TIMEOUT = 5000;
+const OCR_TIMEOUT = 30000;
 
 interface OcrLoadingProps {
   /** Custom message to display (default: "Analyse en cours...") */

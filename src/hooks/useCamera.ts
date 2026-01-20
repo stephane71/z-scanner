@@ -202,7 +202,8 @@ export function useCamera(): UseCameraResult {
 
   /**
    * Capture current video frame as Blob
-   * Returns WebP blob at 80% quality (with JPEG fallback for Safari)
+   * Captures full frame at high quality for OCR
+   * Returns WebP blob at 92% quality (with JPEG fallback for Safari)
    */
   const captureFrame = useCallback(async (): Promise<Blob | null> => {
     if (!videoRef.current || !isReady) {
@@ -216,25 +217,29 @@ export function useCamera(): UseCameraResult {
       return null;
     }
 
+    const videoWidth = video.videoWidth;
+    const videoHeight = video.videoHeight;
+
     const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    canvas.width = videoWidth;
+    canvas.height = videoHeight;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       return null;
     }
 
-    // Draw video frame to canvas
-    ctx.drawImage(video, 0, 0);
+    // Draw full video frame to canvas
+    ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
 
-    // Try WebP first, fallback to JPEG for Safari
+    // Use high quality for OCR - text needs to be readable
     return new Promise<Blob | null>((resolve) => {
       // Check WebP support
       const supportsWebP =
         canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
       const mimeType = supportsWebP ? 'image/webp' : 'image/jpeg';
-      const quality = supportsWebP ? 0.8 : 0.85;
+      // High quality for better OCR results
+      const quality = 0.92;
 
       canvas.toBlob(
         (blob) => {

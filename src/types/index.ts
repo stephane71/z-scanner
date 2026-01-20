@@ -4,7 +4,18 @@
  */
 
 // Ticket types
-export type { Ticket, TicketFormData, TicketStatus } from './ticket';
+export type {
+  Ticket,
+  TicketFormData,
+  TicketStatus,
+  OcrStatus,
+  TicketType,
+  PaymentMode,
+  Payment,
+} from './ticket';
+
+// OCR types (re-export from ticket which re-exports from ocr/types)
+export type { OcrConfidence } from '@/lib/ocr/types';
 
 // Photo types
 export type { Photo } from './photo';

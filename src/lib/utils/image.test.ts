@@ -108,13 +108,13 @@ describe('Image Compression Utilities', () => {
 
       await compressTicketImage(inputBlob);
 
-      // Check original options
+      // Check original options (1MB, 2048px for OCR text recognition)
       expect(imageCompression).toHaveBeenCalledWith(
         expect.any(File),
         expect.objectContaining({
-          maxSizeMB: 0.1,
-          maxWidthOrHeight: 1920,
-          initialQuality: 0.8,
+          maxSizeMB: 1.0,
+          maxWidthOrHeight: 2048,
+          initialQuality: 0.9,
         })
       );
 

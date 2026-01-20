@@ -45,10 +45,16 @@ describe('ZScannerDB Schema', () => {
   describe('Tickets Table', () => {
     const createTestTicket = (): Omit<Ticket, 'id'> => ({
       dataHash: 'sha256-test-hash-123',
-      date: '2026-01-17',
-      montantTTC: 1250, // 12,50€
-      modeReglement: 'CB',
-      numeroTicket: 'TKT-001',
+      type: 'STATISTIQUES',
+      impressionDate: '2026-01-17',
+      lastResetDate: '2026-01-15',
+      resetNumber: 42,
+      ticketNumber: 1,
+      discountValue: 0,
+      cancelValue: 0,
+      cancelNumber: 0,
+      payments: [{ mode: 'CB', value: 1250 }],
+      total: 1250, // 12,50€
       userId: 'user-123',
       status: 'validated',
       createdAt: new Date().toISOString(),
@@ -70,8 +76,8 @@ describe('ZScannerDB Schema', () => {
       const retrieved = await db.tickets.get(id);
 
       expect(retrieved).toBeDefined();
-      expect(retrieved?.montantTTC).toBe(1250);
-      expect(retrieved?.numeroTicket).toBe('TKT-001');
+      expect(retrieved?.total).toBe(1250);
+      expect(retrieved?.ticketNumber).toBe(1);
     });
 
     it('should query tickets by userId index', async () => {
@@ -105,13 +111,13 @@ describe('ZScannerDB Schema', () => {
     });
 
     it('should store money as integer centimes', async () => {
-      const ticket = { ...createTestTicket(), montantTTC: 9999 }; // 99,99€
+      const ticket = { ...createTestTicket(), total: 9999 }; // 99,99€
       const id = await db.tickets.add(ticket as Ticket);
 
       const retrieved = await db.tickets.get(id);
 
-      expect(retrieved?.montantTTC).toBe(9999);
-      expect(typeof retrieved?.montantTTC).toBe('number');
+      expect(retrieved?.total).toBe(9999);
+      expect(typeof retrieved?.total).toBe('number');
     });
 
     it('should store optional marketId', async () => {
@@ -284,10 +290,16 @@ describe('ZScannerDB Schema', () => {
       await db.transaction('rw', [db.tickets, db.syncQueue], async () => {
         const ticketId = await db.tickets.add({
           dataHash: 'hash-123',
-          date: '2026-01-17',
-          montantTTC: 1000,
-          modeReglement: 'Espèces',
-          numeroTicket: 'TKT-TX',
+          type: 'STATISTIQUES',
+          impressionDate: '2026-01-17',
+          lastResetDate: '2026-01-15',
+          resetNumber: 1,
+          ticketNumber: 1,
+          discountValue: 0,
+          cancelValue: 0,
+          cancelNumber: 0,
+          payments: [{ mode: 'ESPECES', value: 1000 }],
+          total: 1000,
           userId: 'user-tx',
           status: 'draft',
           createdAt: new Date().toISOString(),

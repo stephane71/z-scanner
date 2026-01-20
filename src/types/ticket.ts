@@ -8,12 +8,16 @@ import type {
   OcrStatus,
   OcrConfidence,
   TicketType,
-  PaymentMode,
   Payment,
-} from '@/lib/ocr/types';
+} from "@/lib/ocr/types";
 
 // Re-export types for convenience
-export type { OcrStatus, TicketType, PaymentMode, Payment } from '@/lib/ocr/types';
+export type {
+  OcrStatus,
+  TicketType,
+  PaymentMode,
+  Payment,
+} from "@/lib/ocr/types";
 
 /**
  * Ticket status following NF525 append-only pattern
@@ -21,7 +25,7 @@ export type { OcrStatus, TicketType, PaymentMode, Payment } from '@/lib/ocr/type
  * - validated: Ticket has been validated (immutable)
  * - cancelled: Ticket has been cancelled (immutable, with reason)
  */
-export type TicketStatus = 'draft' | 'validated' | 'cancelled';
+export type TicketStatus = "draft" | "validated" | "cancelled";
 
 /**
  * Core ticket interface for IndexedDB storage
@@ -115,11 +119,11 @@ export interface TicketFormData {
  * Create default ticket data for a new ticket
  * Used when creating a ticket from OCR or manual entry
  */
-export function createDefaultTicketData(): Omit<TicketFormData, 'marketId'> {
+export function createDefaultTicketData(): Omit<TicketFormData, "marketId"> {
   return {
-    type: 'STATISTIQUES',
-    impressionDate: new Date().toISOString().split('T')[0],
-    lastResetDate: new Date().toISOString().split('T')[0],
+    type: "STATISTIQUES",
+    impressionDate: new Date().toISOString().split("T")[0],
+    lastResetDate: new Date().toISOString().split("T")[0],
     resetNumber: 0,
     ticketNumber: 0,
     discountValue: 0,

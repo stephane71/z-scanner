@@ -6,9 +6,10 @@
 import type { OcrResult, OcrResponse, OcrError } from './types';
 
 /**
- * OCR timeout in milliseconds (5 seconds per NFR-P1)
+ * OCR timeout in milliseconds
+ * Claude Vision API needs time to process images - 30 seconds is reasonable
  */
-const OCR_TIMEOUT = 5000;
+const OCR_TIMEOUT = 30000;
 
 /**
  * Convert Blob to base64 string (without data URL prefix)
@@ -58,7 +59,9 @@ export async function processOcr(imageBlob: Blob): Promise<OcrResult> {
 
   // Create abort controller for timeout
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), OCR_TIMEOUT);
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, OCR_TIMEOUT);
 
   try {
     const response = await fetch('/api/ocr', {

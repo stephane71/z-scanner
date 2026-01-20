@@ -40,11 +40,12 @@ export interface CompressionOptions {
 
 /**
  * Default compression options per architecture spec
+ * Optimized for OCR - text needs to be readable
  */
 const DEFAULT_OPTIONS: Required<CompressionOptions> = {
-  maxSizeMB: 0.1, // 100KB
-  maxWidthOrHeight: 1920,
-  initialQuality: 0.8,
+  maxSizeMB: 1.0, // 1MB - high quality for OCR text recognition
+  maxWidthOrHeight: 2048, // Full resolution for text readability
+  initialQuality: 0.9, // High quality to preserve text details
   thumbnailMaxSizeMB: 0.01, // 10KB
   thumbnailMaxWidthOrHeight: 200,
   thumbnailQuality: 0.6,

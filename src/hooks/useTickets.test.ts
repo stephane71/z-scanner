@@ -17,10 +17,16 @@ import type { Ticket } from '@/types';
 describe('useTickets CRUD Operations', () => {
   const createTestTicket = (overrides = {}): Omit<Ticket, 'id'> => ({
     dataHash: 'sha256-test-hash-123',
-    date: '2026-01-17',
-    montantTTC: 1250,
-    modeReglement: 'CB',
-    numeroTicket: 'TKT-001',
+    type: 'STATISTIQUES',
+    impressionDate: '2026-01-17',
+    lastResetDate: '2026-01-15',
+    resetNumber: 42,
+    ticketNumber: 1,
+    discountValue: 0,
+    cancelValue: 0,
+    cancelNumber: 0,
+    payments: [{ mode: 'CB', value: 1250 }],
+    total: 1250,
     userId: 'user-123',
     status: 'draft',
     createdAt: new Date().toISOString(),
@@ -47,16 +53,16 @@ describe('useTickets CRUD Operations', () => {
 
     it('should store all ticket fields correctly', async () => {
       const ticket = createTestTicket({
-        montantTTC: 9999,
-        modeReglement: 'Espèces',
+        total: 9999,
+        payments: [{ mode: 'ESPECES', value: 9999 }],
         marketId: 42,
       });
       const id = await addTicket(ticket);
 
       const stored = await db.tickets.get(id);
 
-      expect(stored?.montantTTC).toBe(9999);
-      expect(stored?.modeReglement).toBe('Espèces');
+      expect(stored?.total).toBe(9999);
+      expect(stored?.payments[0].mode).toBe('ESPECES');
       expect(stored?.marketId).toBe(42);
     });
   });
@@ -70,7 +76,7 @@ describe('useTickets CRUD Operations', () => {
 
       expect(retrieved).toBeDefined();
       expect(retrieved?.id).toBe(id);
-      expect(retrieved?.numeroTicket).toBe('TKT-001');
+      expect(retrieved?.ticketNumber).toBe(1);
     });
 
     it('should return undefined for non-existent id', async () => {
@@ -203,13 +209,13 @@ describe('useTickets CRUD Operations', () => {
 
   describe('NF525 Compliance', () => {
     it('should store data as integer centimes', async () => {
-      const ticket = createTestTicket({ montantTTC: 12345 }); // 123,45€
+      const ticket = createTestTicket({ total: 12345 }); // 123,45€
       const id = await addTicket(ticket);
 
       const stored = await getTicket(id);
 
-      expect(stored?.montantTTC).toBe(12345);
-      expect(Number.isInteger(stored?.montantTTC)).toBe(true);
+      expect(stored?.total).toBe(12345);
+      expect(Number.isInteger(stored?.total)).toBe(true);
     });
 
     it('should store dates in ISO 8601 format', async () => {

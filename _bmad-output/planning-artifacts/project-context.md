@@ -137,7 +137,7 @@ src/
 ├── lib/
 │   ├── db/               # Dexie schema, migrations
 │   ├── supabase/         # Supabase clients
-│   ├── ocr/              # Tesseract wrapper
+│   ├── ocr/              # Claude Haiku 4.5 Vision API
 │   ├── sync/             # Sync queue, engine
 │   ├── crypto/           # SHA-256 hash
 │   └── utils/            # Format, transform, validation

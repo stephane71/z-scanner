@@ -16,3 +16,17 @@ export { FlashOverlay, type FlashOverlayProps } from './FlashOverlay';
 export { OcrLoading } from './OcrLoading';
 export { OcrResult } from './OcrResult';
 export { OcrError } from './OcrError';
+
+// Verification components (Story 3.4)
+export { VerificationHeader, type VerificationHeaderProps } from './VerificationHeader';
+export { PhotoThumbnail, type PhotoThumbnailProps } from './PhotoThumbnail';
+export { TotalHero, type TotalHeroProps } from './TotalHero';
+export {
+  ConfidenceIndicator,
+  getConfidenceBorderClass,
+  type ConfidenceIndicatorProps,
+  type ConfidenceLevel,
+} from './ConfidenceIndicator';
+export { ValidateButton, type ValidateButtonProps } from './ValidateButton';
+export { PaymentEditor, type PaymentEditorProps } from './PaymentEditor';
+export { VerificationForm, type VerificationFormProps } from './VerificationForm';

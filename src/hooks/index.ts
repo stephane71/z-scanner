@@ -55,3 +55,10 @@ export {
 
 // OCR hooks
 export { useOCR, type UseOcrResult } from './useOCR';
+
+// Verification hooks
+export {
+  useVerification,
+  type UseVerificationOptions,
+  type UseVerificationResult,
+} from './useVerification';
