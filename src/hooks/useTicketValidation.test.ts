@@ -229,4 +229,92 @@ describe('useTicketValidation', () => {
     expect(result.current.validationError).toBeNull();
     expect(result.current.isValidating).toBe(false);
   });
+
+  // Story 3.7: Photo Archival Tests
+  describe('Photo Sync Queue (Story 3.7)', () => {
+    let testPhotoId: number;
+
+    beforeEach(async () => {
+      // Create a photo linked to the test ticket
+      const photoData = {
+        ticketId: testTicketId,
+        blob: new Blob(['fake-image-data'], { type: 'image/webp' }),
+        thumbnail: new Blob(['fake-thumbnail-data'], { type: 'image/webp' }),
+        createdAt: new Date().toISOString(),
+      };
+      testPhotoId = (await db.photos.add(photoData)) as number;
+    });
+
+    afterEach(async () => {
+      await db.photos.clear();
+    });
+
+    it('should add photo to sync queue after ticket validation', async () => {
+      const { result } = renderHook(() => useTicketValidation());
+
+      await act(async () => {
+        await result.current.validateTicket(testTicketId, mockFormData, mockUserId);
+      });
+
+      const syncItems = await db.syncQueue.toArray();
+      // Should have 2 entries: one for ticket, one for photo
+      expect(syncItems).toHaveLength(2);
+
+      const photoSyncItem = syncItems.find(item => item.entityType === 'photo');
+      expect(photoSyncItem).toBeDefined();
+      expect(photoSyncItem?.entityId).toBe(testPhotoId);
+      expect(photoSyncItem?.action).toBe('create');
+      expect(photoSyncItem?.status).toBe('pending');
+    });
+
+    it('should include correct payload in photo sync queue entry', async () => {
+      const { result } = renderHook(() => useTicketValidation());
+
+      await act(async () => {
+        await result.current.validateTicket(testTicketId, mockFormData, mockUserId);
+      });
+
+      const syncItems = await db.syncQueue.toArray();
+      const photoSyncItem = syncItems.find(item => item.entityType === 'photo');
+
+      const payload = JSON.parse(photoSyncItem!.payload);
+      expect(payload.ticketId).toBe(testTicketId);
+      expect(payload.userId).toBe(mockUserId);
+      expect(payload.storagePath).toBe(`${mockUserId}/${testTicketId}/${testPhotoId}.webp`);
+    });
+
+    it('should not add photo sync entry if no photo exists for ticket', async () => {
+      // Clear photos before test
+      await db.photos.clear();
+
+      const { result } = renderHook(() => useTicketValidation());
+
+      await act(async () => {
+        await result.current.validateTicket(testTicketId, mockFormData, mockUserId);
+      });
+
+      const syncItems = await db.syncQueue.toArray();
+      // Should only have ticket entry, no photo entry
+      expect(syncItems).toHaveLength(1);
+      expect(syncItems[0].entityType).toBe('ticket');
+    });
+
+    it('should set correct createdAt timestamp for photo sync entry', async () => {
+      const { result } = renderHook(() => useTicketValidation());
+      const beforeValidation = new Date().toISOString();
+
+      await act(async () => {
+        await result.current.validateTicket(testTicketId, mockFormData, mockUserId);
+      });
+
+      const afterValidation = new Date().toISOString();
+
+      const syncItems = await db.syncQueue.toArray();
+      const photoSyncItem = syncItems.find(item => item.entityType === 'photo');
+
+      expect(photoSyncItem?.createdAt).toBeDefined();
+      expect(new Date(photoSyncItem!.createdAt) >= new Date(beforeValidation)).toBe(true);
+      expect(new Date(photoSyncItem!.createdAt) <= new Date(afterValidation)).toBe(true);
+    });
+  });
 });

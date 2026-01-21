@@ -75,3 +75,6 @@ export {
   useTicketValidation,
   type UseTicketValidationResult,
 } from './useTicketValidation';
+
+// Photo hooks (Story 3.7)
+export { usePhoto, type UsePhotoResult } from './usePhoto';

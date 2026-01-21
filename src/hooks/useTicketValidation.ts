@@ -1,11 +1,12 @@
 /**
  * useTicketValidation hook - Validates tickets with NF525 compliance
  * Story 3.6: Ticket Validation with NF525 Compliance
+ * Story 3.7: Photo Archival - Adds photo to sync queue
  *
  * Handles:
  * - SHA-256 hash computation for ticket data
  * - Ticket status update to 'validated'
- * - Sync queue entry for offline support
+ * - Sync queue entry for offline support (ticket + photo)
  * - Haptic feedback on success
  */
 
@@ -75,7 +76,8 @@ export function useTicketValidation(): UseTicketValidationResult {
 
       try {
         // Use transaction for atomicity
-        await db.transaction('rw', [db.tickets, db.syncQueue], async () => {
+        // Story 3.7: Include photos table for photo sync queue entry
+        await db.transaction('rw', [db.tickets, db.syncQueue, db.photos], async () => {
           // 1. Verify ticket exists and is in draft status
           const ticket = await db.tickets.get(ticketId);
           if (!ticket) {
@@ -134,9 +136,28 @@ export function useTicketValidation(): UseTicketValidationResult {
             retries: 0,
             createdAt: clientTimestamp,
           });
+
+          // 6. Story 3.7: Add photo to sync queue for cloud backup
+          const photo = await db.photos.where('ticketId').equals(ticketId).first();
+          if (photo && photo.id) {
+            const storagePath = `${userId}/${ticketId}/${photo.id}.webp`;
+            await db.syncQueue.add({
+              entityType: 'photo',
+              entityId: photo.id,
+              action: 'create',
+              payload: JSON.stringify({
+                ticketId,
+                userId,
+                storagePath,
+              }),
+              status: 'pending',
+              retries: 0,
+              createdAt: clientTimestamp,
+            });
+          }
         });
 
-        // 6. Trigger haptic feedback
+        // 7. Trigger haptic feedback
         triggerHaptic('success');
 
         setValidationSuccess(true);
