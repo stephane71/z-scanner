@@ -34,3 +34,10 @@ export { VerificationForm, type VerificationFormProps } from './VerificationForm
 // Manual entry components (Story 3.5)
 export { ManualEntryHeader, type ManualEntryHeaderProps } from './ManualEntryHeader';
 export { ManualEntryForm, type ManualEntryFormProps } from './ManualEntryForm';
+
+// Validation success component (Story 3.6)
+export {
+  ValidationSuccess,
+  VALIDATION_SUCCESS_DELAY,
+  type ValidationSuccessProps,
+} from './ValidationSuccess';

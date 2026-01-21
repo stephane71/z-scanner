@@ -69,3 +69,9 @@ export {
   type UseManualEntryOptions,
   type UseManualEntryResult,
 } from './useManualEntry';
+
+// Validation hooks (Story 3.6)
+export {
+  useTicketValidation,
+  type UseTicketValidationResult,
+} from './useTicketValidation';

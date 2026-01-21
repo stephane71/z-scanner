@@ -3,19 +3,23 @@
 /**
  * VerifyPageClient - Client Component for Verification Screen
  * Story 3.4: Verification Screen
+ * Story 3.6: Ticket Validation with NF525 Compliance
  *
  * Displays ticket data for user verification before validation.
  * Uses useVerification hook for form state, VerificationForm for editable fields.
  * Shows photo thumbnail, total in hero size, editable fields with confidence indicators.
+ * Integrates NF525-compliant validation with hash, haptic feedback, and success animation.
  */
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useVerification } from "@/hooks";
+import { createClient } from "@/lib/supabase/client";
+import { useVerification, useTicketValidation } from "@/hooks";
 import {
   VerificationForm,
   VerificationHeader,
   ValidateButton,
+  ValidationSuccess,
 } from "@/components/features/scanner";
 
 interface VerifyPageClientProps {
@@ -25,7 +29,8 @@ interface VerifyPageClientProps {
 export function VerifyPageClient({ ticketId }: VerifyPageClientProps) {
   const router = useRouter();
   const [isPhotoFullscreen, setIsPhotoFullscreen] = useState(false);
-  const [isValidating, setIsValidating] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Use the verification hook for form state management
   const {
@@ -34,12 +39,41 @@ export function VerifyPageClient({ ticketId }: VerifyPageClientProps) {
     isLoading,
     notFound,
     form,
-    updateTicket,
     isDirty,
     isSaving,
     saveError,
     confidence,
   } = useVerification({ ticketId });
+
+  // Use the ticket validation hook for NF525 compliance
+  const {
+    validateTicket,
+    isValidating,
+    validationError,
+    validationSuccess,
+  } = useTicketValidation();
+
+  // Get current user on mount
+  useEffect(() => {
+    async function getUser() {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          setUserId(user.id);
+          setAuthError(null);
+        } else {
+          setAuthError("Utilisateur non authentifié");
+        }
+      } catch (err) {
+        console.error("Failed to get user:", err);
+        setAuthError("Erreur d'authentification");
+      }
+    }
+    getUser();
+  }, []);
 
   // Create object URL for photo blob
   const photoUrl = useMemo(() => {
@@ -66,15 +100,19 @@ export function VerifyPageClient({ ticketId }: VerifyPageClientProps) {
   }, [ticketId, router]);
 
   // Handle ticket not found or already validated
+  // Skip redirect if validation just succeeded (we want to show success overlay)
   useEffect(() => {
+    if (validationSuccess) {
+      return; // Don't redirect - show success overlay instead
+    }
     if (notFound) {
       router.push("/scan");
     } else if (ticket && ticket.status !== "draft") {
       router.push("/scan");
     }
-  }, [ticket, notFound, router]);
+  }, [ticket, notFound, router, validationSuccess]);
 
-  // Handle form validation and save
+  // Handle form validation and NF525-compliant ticket validation
   const handleValidate = useCallback(async () => {
     // Trigger form validation
     const isValid = await form.trigger();
@@ -82,18 +120,24 @@ export function VerifyPageClient({ ticketId }: VerifyPageClientProps) {
       return;
     }
 
-    setIsValidating(true);
-    try {
-      // Save form data to Dexie
-      await updateTicket();
-      // Navigate back to scan (Story 3.6 will add actual validation)
-      router.push("/scan");
-    } catch (error) {
-      // Error is handled by useVerification hook (saveError)
-    } finally {
-      setIsValidating(false);
+    // Ensure user is authenticated
+    if (!userId) {
+      return;
     }
-  }, [form, updateTicket, router]);
+
+    try {
+      // Validate ticket with NF525 compliance (hash + sync queue)
+      await validateTicket(ticketId, form.getValues(), userId);
+      // ValidationSuccess component will handle the redirect
+    } catch (error) {
+      // Error is handled by useTicketValidation hook (validationError)
+    }
+  }, [form, validateTicket, ticketId, userId]);
+
+  // Handle auto-redirect after validation success
+  const handleValidationComplete = useCallback(() => {
+    router.push("/scan");
+  }, [router]);
 
   // Loading state
   if (isLoading) {
@@ -104,13 +148,18 @@ export function VerifyPageClient({ ticketId }: VerifyPageClientProps) {
     );
   }
 
-  // Ticket not found or invalid (will redirect)
-  if (notFound || !ticket || ticket.status !== "draft") {
+  // Ticket not found or invalid (will redirect) - but allow success overlay
+  if (!validationSuccess && (notFound || !ticket || ticket.status !== "draft")) {
     return null;
   }
 
   // Check if form has validation errors
   const hasErrors = Object.keys(form.formState.errors).length > 0;
+
+  // Show validation success overlay
+  if (validationSuccess) {
+    return <ValidationSuccess onComplete={handleValidationComplete} />;
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
@@ -179,10 +228,10 @@ export function VerifyPageClient({ ticketId }: VerifyPageClientProps) {
           className="py-4"
         />
 
-        {/* Save error display */}
-        {saveError && (
+        {/* Error display (save errors, validation errors, or auth errors) */}
+        {(saveError || validationError || authError) && (
           <div className="mx-4 mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-600">
-            {saveError}
+            {saveError || validationError || authError}
           </div>
         )}
       </main>
@@ -192,7 +241,7 @@ export function VerifyPageClient({ ticketId }: VerifyPageClientProps) {
         <ValidateButton
           onClick={handleValidate}
           isLoading={isValidating || isSaving}
-          isValid={!hasErrors}
+          isValid={!hasErrors && !!userId}
         />
         {isDirty && !hasErrors && (
           <p className="mt-2 text-center text-xs text-gray-500">

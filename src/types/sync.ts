@@ -14,10 +14,10 @@ export type SyncStatus = 'pending' | 'in-progress' | 'completed' | 'failed';
 
 /**
  * Action type for sync operations
- * NF525: Only 'create' and 'cancel' are valid for tickets (no update/delete)
+ * NF525: Only 'create', 'validate' and 'cancel' are valid for tickets (no update/delete)
  * 'ocr': Queue OCR processing for offline photos
  */
-export type SyncAction = 'create' | 'update' | 'cancel' | 'ocr';
+export type SyncAction = 'create' | 'update' | 'validate' | 'cancel' | 'ocr';
 
 /**
  * Entity types that can be synced
