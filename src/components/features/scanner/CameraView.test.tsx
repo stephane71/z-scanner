@@ -146,10 +146,13 @@ describe('CameraView', () => {
       expect(video.tagName.toLowerCase()).toBe('video');
     });
 
-    it('should render guide frame', () => {
+    it('should render camera preview in ready state', () => {
       render(<CameraView onCapture={vi.fn()} />);
 
-      expect(screen.getByText(/placez le ticket/i)).toBeInTheDocument();
+      // Video preview and capture button indicate ready state
+      // Guide frame corners exist but are aria-hidden (visual only)
+      const video = screen.getByLabelText(/aperçu/i);
+      expect(video).toBeInTheDocument();
     });
 
     it('should render capture button', () => {

@@ -156,13 +156,6 @@ export function CameraView({ onCapture, isProcessing = false }: CameraViewProps)
         </div>
       </div>
 
-      {/* Instruction text */}
-      <div className="absolute top-4 left-0 right-0 flex justify-center pointer-events-none">
-        <p className="px-4 py-2 bg-black/50 text-white text-sm rounded-full">
-          Placez le ticket dans le cadre
-        </p>
-      </div>
-
       {/* Capture button and manual entry link in thumb zone */}
       <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center gap-3 pb-safe">
         <CaptureButton

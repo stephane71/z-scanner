@@ -73,7 +73,7 @@ epic-3-scan-validation-core-flow-offline: in-progress
 3-5-manual-entry-fallback: done
 3-6-ticket-validation-nf525-compliance: done
 3-7-photo-archival: done
-3-8-sync-queue-indicator: backlog
+3-8-sync-queue-indicator: done
 3-9-background-sync-engine: backlog
 3-10-app-layout-bottom-navigation: backlog
 

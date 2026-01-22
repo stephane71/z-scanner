@@ -1,31 +1,34 @@
-'use client'
+'use client';
 
 /**
- * Returns the count of pending (unsynchronized) items in the sync queue.
- * Used to warn users before logout if they have unsynchronized data.
+ * Returns the count of pending (unsynchronized) tickets.
+ * Counts only ticket entities (not photos) for user-friendly display.
+ * Each validated ticket = 1 count, regardless of associated sync items.
  *
- * NOTE: The Dexie database schema and syncQueue table will be created in
- * Epic 3 (Story 3.1). For now, this hook returns 0 as the database doesn't
- * exist yet.
- *
- * Once Epic 3 is implemented, replace this implementation with:
- * ```typescript
- * import { useLiveQuery } from 'dexie-react-hooks'
- * import { db } from '@/lib/db'
- *
- * export function usePendingSyncCount(): number {
- *   const count = useLiveQuery(
- *     async () => db.syncQueue.where('status').equals('pending').count(),
- *     [],
- *     0
- *   )
- *   return count ?? 0
- * }
- * ```
+ * Uses useLiveQuery for reactive updates when sync queue changes.
+ */
+
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '@/lib/db';
+
+/**
+ * Hook to get the count of pending tickets to sync
+ * @returns The number of pending tickets (0 if loading or empty)
  */
 export function usePendingSyncCount(): number {
-  // Placeholder implementation until Epic 3 creates the Dexie database
-  // Returns 0 as there's no sync queue yet
-  // The sync warning feature will become active once Story 3.1 is implemented
-  return 0
+  const count = useLiveQuery(
+    async () => {
+      // Count only ticket entities that are pending or in-progress
+      // This gives a user-friendly count (1 per ticket, not 1 per sync item)
+      return db.syncQueue
+        .where('entityType')
+        .equals('ticket')
+        .and((item) => item.status === 'pending' || item.status === 'in-progress')
+        .count();
+    },
+    [],
+    0 // Default value while loading
+  );
+
+  return count ?? 0;
 }
