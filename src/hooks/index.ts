@@ -78,3 +78,15 @@ export {
 
 // Photo hooks (Story 3.7)
 export { usePhoto, type UsePhotoResult } from './usePhoto';
+
+// Network connectivity hooks (Story 3.9)
+export { useOnline } from './useOnline';
+
+// Sync engine hooks (Story 3.9)
+export { useSyncEngine, type UseSyncEngineResult } from './useSyncEngine';
+
+// Toast hooks (Story 3.9)
+export { useToast, type ToastOptions, type ToastType, type UseToastResult } from './useToast';
+
+// Sync count hook (Story 3.8)
+export { usePendingSyncCount } from './usePendingSyncCount';
