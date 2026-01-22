@@ -8,10 +8,10 @@
  * Uses amber styling per UX spec (warning but not error).
  *
  * Hidden when:
- * - Ticket is fully synced (no pending/in-progress items)
+ * - Ticket is fully synced (status = completed)
  *
  * Visible when:
- * - Ticket has pending or in-progress sync items
+ * - Ticket has pending, in-progress, or failed sync items
  */
 
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -23,15 +23,15 @@ interface TicketSyncBadgeProps {
 }
 
 export function TicketSyncBadge({ ticketId }: TicketSyncBadgeProps) {
-  // Check if this ticket has any pending or in-progress sync items
-  // Also check photos linked to this ticket
+  // Check if this ticket has any non-completed sync items
+  // (pending, in-progress, or failed all mean "not synced")
   const hasPendingSync = useLiveQuery(async () => {
-    // Count pending/in-progress items for this ticket
+    // Count non-completed items for this ticket
     const ticketItems = await db.syncQueue
       .where('entityType')
       .equals('ticket')
       .and((item) => item.entityId === ticketId)
-      .and((item) => item.status === 'pending' || item.status === 'in-progress')
+      .and((item) => item.status !== 'completed')
       .count();
 
     if (ticketItems > 0) return true;
@@ -48,7 +48,7 @@ export function TicketSyncBadge({ ticketId }: TicketSyncBadgeProps) {
           return false;
         }
       })
-      .and((item) => item.status === 'pending' || item.status === 'in-progress')
+      .and((item) => item.status !== 'completed')
       .count();
 
     return photoItems > 0;

@@ -46,12 +46,8 @@ export function VerifyPageClient({ ticketId }: VerifyPageClientProps) {
   } = useVerification({ ticketId });
 
   // Use the ticket validation hook for NF525 compliance
-  const {
-    validateTicket,
-    isValidating,
-    validationError,
-    validationSuccess,
-  } = useTicketValidation();
+  const { validateTicket, isValidating, validationError, validationSuccess } =
+    useTicketValidation();
 
   // Get current user on mount
   useEffect(() => {
@@ -149,7 +145,10 @@ export function VerifyPageClient({ ticketId }: VerifyPageClientProps) {
   }
 
   // Ticket not found or invalid (will redirect) - but allow success overlay
-  if (!validationSuccess && (notFound || !ticket || ticket.status !== "draft")) {
+  if (
+    !validationSuccess &&
+    (notFound || !ticket || ticket.status !== "draft")
+  ) {
     return null;
   }
 
@@ -166,8 +165,8 @@ export function VerifyPageClient({ ticketId }: VerifyPageClientProps) {
       {/* Header with back button and NF525 badge */}
       <VerificationHeader onBack={() => router.push("/scan")} />
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto pb-24">
+      {/* Main content - pb-44 accounts for bottom nav (80px) + button area (96px) */}
+      <main className="flex-1 overflow-y-auto pb-44">
         {/* Photo thumbnail - click to view fullscreen */}
         {photoUrl && (
           <div className="px-4 pt-4">
@@ -236,8 +235,8 @@ export function VerifyPageClient({ ticketId }: VerifyPageClientProps) {
         )}
       </main>
 
-      {/* Validate Button - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
+      {/* Validate Button - Fixed above bottom navigation */}
+      <div className="fixed bottom-16 left-0 right-0 bg-white p-4 shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
         <ValidateButton
           onClick={handleValidate}
           isLoading={isValidating || isSaving}

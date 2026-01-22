@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * ManualEntryClient - Manual ticket entry screen
@@ -13,16 +13,16 @@
  * 3. Navigates to verification screen for final review
  */
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
-import { useManualEntry } from '@/hooks';
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { useManualEntry } from "@/hooks";
 import {
   ManualEntryHeader,
   ManualEntryForm,
   ValidateButton,
-} from '@/components/features/scanner';
+} from "@/components/features/scanner";
 
 export function ManualEntryClient() {
   const router = useRouter();
@@ -40,20 +40,21 @@ export function ManualEntryClient() {
         if (user) {
           setUserId(user.id);
         } else {
-          setAuthError('Utilisateur non authentifié');
+          setAuthError("Utilisateur non authentifié");
         }
       } catch (err) {
-        console.error('Failed to get user:', err);
-        setAuthError('Erreur lors de la vérification de l\'authentification');
+        console.error("Failed to get user:", err);
+        setAuthError("Erreur lors de la vérification de l'authentification");
       }
     }
     getUser();
   }, []);
 
   // Manual entry hook
-  const { form, createTicket, isSaving, saveError, clearError } = useManualEntry({
-    userId,
-  });
+  const { form, createTicket, isSaving, saveError, clearError } =
+    useManualEntry({
+      userId,
+    });
 
   // Handle form submission
   const handleSubmit = useCallback(async () => {
@@ -69,7 +70,7 @@ export function ManualEntryClient() {
       router.push(`/scan/verify/${ticketId}`);
     } catch (error) {
       // Error is handled by hook (saveError state)
-      console.error('Failed to create ticket:', error);
+      console.error("Failed to create ticket:", error);
     }
   }, [form, createTicket, router]);
 
@@ -141,7 +142,7 @@ export function ManualEntryClient() {
       </main>
 
       {/* Fixed bottom button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 pb-safe">
+      <div className="fixed bottom-16 left-0 right-0 p-4 bg-white border-t border-gray-200 pb-safe">
         <ValidateButton
           onClick={handleSubmit}
           isValid={form.formState.isValid && !isSaving}

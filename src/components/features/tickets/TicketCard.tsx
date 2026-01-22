@@ -13,6 +13,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { usePhoto } from '@/hooks/usePhoto';
 import { useMarketById } from '@/hooks/useMarkets';
 import { TicketSyncBadge } from '@/components/features/sync';
+import { formatDate, formatCurrency } from '@/lib/utils/format';
 import { NF525Badge } from './NF525Badge';
 import type { Ticket } from '@/types';
 
@@ -21,33 +22,6 @@ interface TicketCardProps {
   ticket: Ticket;
   /** Callback when card is clicked */
   onClick?: () => void;
-}
-
-/**
- * Format date from ISO to French locale (dd/MM/yyyy)
- */
-function formatDate(isoDate: string): string {
-  try {
-    const date = new Date(isoDate);
-    return date.toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  } catch {
-    return isoDate;
-  }
-}
-
-/**
- * Format centimes to euro display (1250 → "12,50 €")
- */
-function formatCurrency(centimes: number): string {
-  const euros = centimes / 100;
-  return euros.toLocaleString('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-  });
 }
 
 export function TicketCard({ ticket, onClick }: TicketCardProps) {
