@@ -64,7 +64,7 @@ epic-2-retrospective: optional
 # Stories: 10
 # Critical path - core product value
 # ------------------------------------------------------------
-epic-3-scan-validation-core-flow-offline: in-progress
+epic-3-scan-validation-core-flow-offline: done
 
 3-1-local-database-schema-dexie-js: done
 3-2-camera-capture-ui: done
@@ -75,7 +75,7 @@ epic-3-scan-validation-core-flow-offline: in-progress
 3-7-photo-archival: done
 3-8-sync-queue-indicator: done
 3-9-background-sync-engine: done
-3-10-app-layout-bottom-navigation: backlog
+3-10-app-layout-bottom-navigation: done
 
 epic-3-retrospective: optional
 
@@ -131,16 +131,13 @@ epic-6-retrospective: optional
 # Total Retrospectives: 6
 #
 # By Status:
-#   done: 18 stories (1.1-1.4, 2.1-2.5, 3.1-3.9) + Epic 1 complete + Epic 2 complete!
-#   backlog: 1 story (3.10) + 15 stories from Epics 4-6
-#   in-progress: Epic 3 (only 3.10 remaining)
+#   done: 19 stories (1.1-1.4, 2.1-2.5, 3.1-3.10) + Epic 1 complete + Epic 2 complete + Epic 3 complete!
+#   backlog: 14 stories from Epics 4-6
 #
-# Code Review Status (Story 3.9):
-#   - Review: PASSED with fix applied
-#   - Fix: Implemented actual exponential backoff via isReadyForRetry()
-#   - Tests: 60 tests passing (6 new tests added)
+# 🎉 EPIC 3 COMPLETE! All 10 stories done.
 #
 # Next Steps:
-# 1. Create Story 3.10 (App Layout & Bottom Navigation)
-# 2. Complete Epic 3 and run retrospective
+# 1. Run Epic 3 retrospective
+# 2. Start Epic 4 (Gestion des Tickets & Marchés)
+# 3. Create Story 4.1 (ticket-list-historique)
 # ============================================================
