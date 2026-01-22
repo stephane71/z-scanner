@@ -84,9 +84,9 @@ epic-3-retrospective: optional
 # FRs: FR15-FR22
 # Stories: 7
 # ------------------------------------------------------------
-epic-4-gestion-des-tickets-marches: backlog
+epic-4-gestion-des-tickets-marches: in-progress
 
-4-1-ticket-list-historique: backlog
+4-1-ticket-list-historique: done
 4-2-ticket-detail-view: backlog
 4-3-filter-by-date: backlog
 4-4-filter-by-market: backlog
