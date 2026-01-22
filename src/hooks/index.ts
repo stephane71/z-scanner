@@ -90,3 +90,6 @@ export { useToast, type ToastOptions, type ToastType, type UseToastResult } from
 
 // Sync count hook (Story 3.8)
 export { usePendingSyncCount } from './usePendingSyncCount';
+
+// Date filter hooks (Story 4.3)
+export { useTicketsByDateRange } from './useTicketsByDateRange';

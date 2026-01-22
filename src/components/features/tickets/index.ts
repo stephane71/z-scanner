@@ -2,6 +2,7 @@
  * Ticket feature components barrel export
  * Story 4.1: Ticket List (Historique)
  * Story 4.2: Ticket Detail View
+ * Story 4.3: Filter by Date
  */
 
 // Story 4.1 Components
@@ -16,6 +17,11 @@ export { TicketPhoto, TicketPhotoSkeleton } from './TicketPhoto';
 export { TicketFields } from './TicketFields';
 export { NF525Info } from './NF525Info';
 export { CancelledBanner } from './CancelledBanner';
+
+// Story 4.3 Components
+export { DateRangeFilter } from './DateRangeFilter';
+export { FilterChip } from './FilterChip';
+export { DateFilterEmpty } from './DateFilterEmpty';
 
 // Types
 export type { TicketCardProps } from './TicketCard';
