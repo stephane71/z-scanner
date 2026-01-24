@@ -8,7 +8,6 @@ export {
   useTickets,
   useTicketById,
   useTicketsByStatus,
-  useTicketsByMarket,
   useTicketsCount,
   addTicket,
   getTicket,
@@ -93,3 +92,6 @@ export { usePendingSyncCount } from './usePendingSyncCount';
 
 // Date filter hooks (Story 4.3)
 export { useTicketsByDateRange } from './useTicketsByDateRange';
+
+// Combined date and market filter hooks (Story 4.4)
+export { useTicketsByMarket } from './useTicketsByMarket';

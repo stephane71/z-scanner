@@ -2,6 +2,7 @@
  * TicketsPageClient component tests
  * Story 4.1: Ticket List (Historique)
  * Story 4.3: Filter by Date (with URL persistence)
+ * Story 4.4: Filter by Market (with URL persistence)
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -31,10 +32,12 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => mockSearchParams,
 }));
 
-// Mock useTicketsByDateRange
-const mockUseTicketsByDateRange = vi.fn();
-vi.mock('@/hooks/useTicketsByDateRange', () => ({
-  useTicketsByDateRange: (...args: unknown[]) => mockUseTicketsByDateRange(...args),
+// Mock hooks from barrel
+const mockUseTicketsByMarket = vi.fn();
+const mockUseMarkets = vi.fn();
+vi.mock('@/hooks', () => ({
+  useTicketsByMarket: (...args: unknown[]) => mockUseTicketsByMarket(...args),
+  useMarkets: (...args: unknown[]) => mockUseMarkets(...args),
 }));
 
 // Mock components
@@ -91,6 +94,39 @@ vi.mock('@/components/features/tickets/FilterChip', () => ({
   ),
 }));
 
+vi.mock('@/components/features/tickets/MarketFilter', () => ({
+  MarketFilter: ({
+    userId,
+    selectedMarketIds,
+    onApply,
+  }: {
+    userId: string;
+    selectedMarketIds: number[];
+    onApply: (ids: number[]) => void;
+  }) => (
+    <div data-testid="market-filter">
+      <span>User: {userId}</span>
+      <span>Selected: {selectedMarketIds.join(',') || 'none'}</span>
+      <button onClick={() => onApply([1, 2])}>Apply Markets</button>
+    </div>
+  ),
+}));
+
+vi.mock('@/components/features/tickets/MarketFilterChip', () => ({
+  MarketFilterChip: ({
+    marketNames,
+    onClear,
+  }: {
+    marketNames: string[];
+    onClear: () => void;
+  }) => (
+    <div data-testid="market-filter-chip">
+      {marketNames.length === 1 ? marketNames[0] : `${marketNames.length} marchés`}
+      <button onClick={onClear}>Clear market chip</button>
+    </div>
+  ),
+}));
+
 const mockTickets: Ticket[] = [
   {
     id: 1,
@@ -112,16 +148,25 @@ const mockTickets: Ticket[] = [
   },
 ];
 
+// Mock markets data
+const mockMarkets = [
+  { id: 1, userId: 'user-123', name: 'Marché Bastille', createdAt: '2026-01-01' },
+  { id: 2, userId: 'user-123', name: 'Marché Aligre', createdAt: '2026-01-01' },
+  { id: 3, userId: 'user-123', name: 'Marché Bio', createdAt: '2026-01-01' },
+];
+
 describe('TicketsPageClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSearchParams = new URLSearchParams();
+    // Default mock for useMarkets
+    mockUseMarkets.mockReturnValue({ markets: mockMarkets, isLoading: false });
   });
 
   it('shows loading skeleton while auth is loading', () => {
     // Never resolve the promise to keep in loading state
     mockGetUser.mockReturnValue(new Promise(() => {}));
-    mockUseTicketsByDateRange.mockReturnValue({ tickets: undefined, isLoading: true });
+    mockUseTicketsByMarket.mockReturnValue({ tickets: undefined, isLoading: true });
 
     render(<TicketsPageClient />);
     expect(screen.getByTestId('ticket-skeleton')).toBeInTheDocument();
@@ -129,7 +174,7 @@ describe('TicketsPageClient', () => {
 
   it('shows message when user is not authenticated', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
-    mockUseTicketsByDateRange.mockReturnValue({ tickets: undefined, isLoading: true });
+    mockUseTicketsByMarket.mockReturnValue({ tickets: undefined, isLoading: true });
 
     render(<TicketsPageClient />);
 
@@ -140,7 +185,7 @@ describe('TicketsPageClient', () => {
 
   it('shows empty state when user has no tickets', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
-    mockUseTicketsByDateRange.mockReturnValue({ tickets: [], isLoading: false });
+    mockUseTicketsByMarket.mockReturnValue({ tickets: [], isLoading: false });
 
     render(<TicketsPageClient />);
 
@@ -151,7 +196,7 @@ describe('TicketsPageClient', () => {
 
   it('shows ticket list when user has tickets', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
-    mockUseTicketsByDateRange.mockReturnValue({ tickets: mockTickets, isLoading: false });
+    mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
 
     render(<TicketsPageClient />);
 
@@ -161,20 +206,20 @@ describe('TicketsPageClient', () => {
     });
   });
 
-  it('passes userId and null dates to useTicketsByDateRange hook initially', async () => {
+  it('passes userId, null dates, and empty marketIds to hook initially', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-abc' } } });
-    mockUseTicketsByDateRange.mockReturnValue({ tickets: [], isLoading: false });
+    mockUseTicketsByMarket.mockReturnValue({ tickets: [], isLoading: false });
 
     render(<TicketsPageClient />);
 
     await waitFor(() => {
-      expect(mockUseTicketsByDateRange).toHaveBeenCalledWith('user-abc', null, null);
+      expect(mockUseTicketsByMarket).toHaveBeenCalledWith('user-abc', null, null, []);
     });
   });
 
   it('eventually shows content after stabilization delay', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
-    mockUseTicketsByDateRange.mockReturnValue({ tickets: mockTickets, isLoading: false });
+    mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
 
     render(<TicketsPageClient />);
 
@@ -191,7 +236,7 @@ describe('TicketsPageClient', () => {
   describe('Date filtering (Story 4.3)', () => {
     it('renders DateRangeFilter component', async () => {
       mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
-      mockUseTicketsByDateRange.mockReturnValue({ tickets: mockTickets, isLoading: false });
+      mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
 
       render(<TicketsPageClient />);
 
@@ -202,7 +247,7 @@ describe('TicketsPageClient', () => {
 
     it('updates URL when filter is applied', async () => {
       mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
-      mockUseTicketsByDateRange.mockReturnValue({ tickets: mockTickets, isLoading: false });
+      mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
 
       render(<TicketsPageClient />);
 
@@ -222,7 +267,7 @@ describe('TicketsPageClient', () => {
 
     it('shows FilterChip when URL has filter params', async () => {
       mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
-      mockUseTicketsByDateRange.mockReturnValue({ tickets: mockTickets, isLoading: false });
+      mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
 
       // Set URL params before render
       mockSearchParams = new URLSearchParams('start=2026-01-01&end=2026-01-15');
@@ -237,7 +282,7 @@ describe('TicketsPageClient', () => {
 
     it('shows DateFilterEmpty when filter returns no results', async () => {
       mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
-      mockUseTicketsByDateRange.mockReturnValue({ tickets: [], isLoading: false });
+      mockUseTicketsByMarket.mockReturnValue({ tickets: [], isLoading: false });
 
       // Set URL params for active filter
       mockSearchParams = new URLSearchParams('start=2026-01-01&end=2026-01-15');
@@ -253,7 +298,7 @@ describe('TicketsPageClient', () => {
 
     it('clears URL params when filter is cleared', async () => {
       mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
-      mockUseTicketsByDateRange.mockReturnValue({ tickets: mockTickets, isLoading: false });
+      mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
 
       // Set URL params for active filter
       mockSearchParams = new URLSearchParams('start=2026-01-01&end=2026-01-15');
@@ -273,7 +318,7 @@ describe('TicketsPageClient', () => {
 
     it('reads filter from URL params and passes to hook', async () => {
       mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
-      mockUseTicketsByDateRange.mockReturnValue({ tickets: mockTickets, isLoading: false });
+      mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
 
       // Set URL params
       mockSearchParams = new URLSearchParams('start=2026-01-10&end=2026-01-20');
@@ -281,12 +326,187 @@ describe('TicketsPageClient', () => {
       render(<TicketsPageClient />);
 
       await waitFor(() => {
-        expect(mockUseTicketsByDateRange).toHaveBeenCalledWith(
+        expect(mockUseTicketsByMarket).toHaveBeenCalledWith(
           'user-123',
           '2026-01-10',
-          '2026-01-20'
+          '2026-01-20',
+          []
         );
       });
+    });
+  });
+
+  // Story 4.4: Filter by Market tests
+  describe('Market filtering (Story 4.4)', () => {
+    it('renders MarketFilter component', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
+      mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
+
+      render(<TicketsPageClient />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('market-filter')).toBeInTheDocument();
+      });
+    });
+
+    it('updates URL when market filter is applied', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
+      mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
+
+      render(<TicketsPageClient />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('market-filter')).toBeInTheDocument();
+      });
+
+      // Apply market filter
+      fireEvent.click(screen.getByText('Apply Markets'));
+
+      // URLSearchParams encodes commas as %2C; decoded value is "1,2"
+      expect(mockPush).toHaveBeenCalledWith(
+        '/tickets?markets=1%2C2',
+        { scroll: false }
+      );
+    });
+
+    it('shows MarketFilterChip when URL has market params', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
+      mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
+
+      // Set URL params before render
+      mockSearchParams = new URLSearchParams('markets=1');
+
+      render(<TicketsPageClient />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('market-filter-chip')).toBeInTheDocument();
+        expect(screen.getByText('Marché Bastille')).toBeInTheDocument();
+      });
+    });
+
+    it('clears market URL params when filter is cleared', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
+      mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
+
+      // Set URL params for active filter
+      mockSearchParams = new URLSearchParams('markets=1,2');
+
+      render(<TicketsPageClient />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('market-filter-chip')).toBeInTheDocument();
+      });
+
+      // Clear filter via chip
+      fireEvent.click(screen.getByText('Clear market chip'));
+
+      // Should update URL without market params
+      expect(mockPush).toHaveBeenCalledWith('/tickets', { scroll: false });
+    });
+
+    it('reads market filter from URL and passes to hook', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
+      mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
+
+      // Set URL params
+      mockSearchParams = new URLSearchParams('markets=1,3');
+
+      render(<TicketsPageClient />);
+
+      await waitFor(() => {
+        expect(mockUseTicketsByMarket).toHaveBeenCalledWith(
+          'user-123',
+          null,
+          null,
+          [1, 3]
+        );
+      });
+    });
+
+    it('shows empty state when market filter returns no results', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
+      mockUseTicketsByMarket.mockReturnValue({ tickets: [], isLoading: false });
+
+      // Set URL params for active market filter
+      mockSearchParams = new URLSearchParams('markets=1');
+
+      render(<TicketsPageClient />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('date-filter-empty')).toBeInTheDocument();
+        // Market filter chip should still be visible
+        expect(screen.getByTestId('market-filter-chip')).toBeInTheDocument();
+      });
+    });
+  });
+
+  // Combined filters tests
+  describe('Combined date and market filtering', () => {
+    it('handles combined date and market filter in URL', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
+      mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
+
+      // Set URL params with both filters
+      mockSearchParams = new URLSearchParams('start=2026-01-01&end=2026-01-15&markets=1,2');
+
+      render(<TicketsPageClient />);
+
+      await waitFor(() => {
+        // Both chips should be visible
+        expect(screen.getByTestId('filter-chip')).toBeInTheDocument();
+        expect(screen.getByTestId('market-filter-chip')).toBeInTheDocument();
+
+        // Hook should receive all params
+        expect(mockUseTicketsByMarket).toHaveBeenCalledWith(
+          'user-123',
+          '2026-01-01',
+          '2026-01-15',
+          [1, 2]
+        );
+      });
+    });
+
+    it('preserves market filter when clearing date filter', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
+      mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
+
+      // Set URL params with both filters
+      mockSearchParams = new URLSearchParams('start=2026-01-01&end=2026-01-15&markets=1');
+
+      render(<TicketsPageClient />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('filter-chip')).toBeInTheDocument();
+      });
+
+      // Clear date filter
+      fireEvent.click(screen.getByText('Clear chip'));
+
+      // Should keep market params
+      expect(mockPush).toHaveBeenCalledWith('/tickets?markets=1', { scroll: false });
+    });
+
+    it('preserves date filter when clearing market filter', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
+      mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
+
+      // Set URL params with both filters
+      mockSearchParams = new URLSearchParams('start=2026-01-01&end=2026-01-15&markets=1');
+
+      render(<TicketsPageClient />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('market-filter-chip')).toBeInTheDocument();
+      });
+
+      // Clear market filter
+      fireEvent.click(screen.getByText('Clear market chip'));
+
+      // Should keep date params
+      expect(mockPush).toHaveBeenCalledWith(
+        '/tickets?start=2026-01-01&end=2026-01-15',
+        { scroll: false }
+      );
     });
   });
 });

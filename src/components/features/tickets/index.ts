@@ -3,6 +3,7 @@
  * Story 4.1: Ticket List (Historique)
  * Story 4.2: Ticket Detail View
  * Story 4.3: Filter by Date
+ * Story 4.4: Filter by Market
  */
 
 // Story 4.1 Components
@@ -22,6 +23,10 @@ export { CancelledBanner } from './CancelledBanner';
 export { DateRangeFilter } from './DateRangeFilter';
 export { FilterChip } from './FilterChip';
 export { DateFilterEmpty } from './DateFilterEmpty';
+
+// Story 4.4 Components
+export { MarketFilter } from './MarketFilter';
+export { MarketFilterChip } from './MarketFilterChip';
 
 // Types
 export type { TicketCardProps } from './TicketCard';
