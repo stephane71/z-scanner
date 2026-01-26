@@ -3,12 +3,14 @@
 /**
  * VerificationForm - Editable form for Z-ticket verification
  * Story 3.4: Verification Screen
+ * Story 4.6: Added market assignment field
  *
  * Displays all Z-ticket fields in editable inputs.
  * Uses React Hook Form Controller for all fields (controlled inputs).
  * Highlights low-confidence fields (yellow border for < 0.8).
  */
 
+import { useState } from "react";
 import { Controller, type UseFormReturn } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +21,8 @@ import {
 } from "./ConfidenceIndicator";
 import { PaymentEditor } from "./PaymentEditor";
 import { TotalHero } from "./TotalHero";
+import { MarketField } from "./MarketField";
+import { MarketPicker } from "./MarketPicker";
 import {
   FIELD_LABELS,
   type TicketVerificationForm,
@@ -30,6 +34,8 @@ interface VerificationFormProps {
   form: UseFormReturn<TicketVerificationForm>;
   /** OCR confidence scores for field highlighting */
   confidence: OcrConfidence | null;
+  /** User ID for market hooks (Story 4.6) */
+  userId?: string;
   /** Optional className for styling */
   className?: string;
 }
@@ -47,6 +53,7 @@ function getFieldBorderClass(confidence: number | undefined): string {
 export function VerificationForm({
   form,
   confidence,
+  userId,
   className = "",
 }: VerificationFormProps) {
   const {
@@ -54,6 +61,9 @@ export function VerificationForm({
     formState: { errors },
     watch,
   } = form;
+
+  // Market picker state (Story 4.6)
+  const [isMarketPickerOpen, setIsMarketPickerOpen] = useState(false);
 
   // Watch total for hero display
   const total = watch("total");
@@ -255,6 +265,32 @@ export function VerificationForm({
             </div>
           )}
         />
+
+        {/* Market Field (Story 4.6) */}
+        {userId && (
+          <Controller
+            name="marketId"
+            control={control}
+            render={({ field }) => (
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-gray-900">
+                  {FIELD_LABELS.marketId}
+                </Label>
+                <MarketField
+                  value={field.value}
+                  onClick={() => setIsMarketPickerOpen(true)}
+                />
+                <MarketPicker
+                  open={isMarketPickerOpen}
+                  onOpenChange={setIsMarketPickerOpen}
+                  onSelect={field.onChange}
+                  selectedMarketId={field.value}
+                  userId={userId}
+                />
+              </div>
+            )}
+          />
+        )}
 
         {/* Total (Currency Input) */}
         <Controller

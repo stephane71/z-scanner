@@ -1,9 +1,10 @@
 /**
  * Unit tests for VerificationForm component
  * Story 3.4: Verification Screen - Task 5
+ * Story 4.6: Added MarketField integration tests
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,17 +13,30 @@ import {
   TicketVerificationSchema,
   type TicketVerificationForm,
 } from '@/lib/validation/ticket';
-import type { OcrConfidence } from '@/types';
+import type { OcrConfidence, Market } from '@/types';
+
+// Mock hooks for MarketField and MarketPicker
+const mockUseMarketById = vi.fn();
+const mockUseMarkets = vi.fn();
+
+vi.mock('@/hooks', () => ({
+  useMarketById: (...args: unknown[]) => mockUseMarketById(...args),
+  useMarkets: (...args: unknown[]) => mockUseMarkets(...args),
+  addMarket: vi.fn(() => Promise.resolve(1)),
+  queueCreate: vi.fn(() => Promise.resolve(1)),
+}));
 
 // Helper wrapper component that provides form context
 function FormWrapper({
   defaultValues,
   confidence,
   className,
+  userId,
 }: {
   defaultValues?: Partial<TicketVerificationForm>;
   confidence?: OcrConfidence | null;
   className?: string;
+  userId?: string;
 }) {
   const form = useForm<TicketVerificationForm>({
     resolver: zodResolver(TicketVerificationSchema),
@@ -47,6 +61,7 @@ function FormWrapper({
       form={form}
       confidence={confidence ?? null}
       className={className}
+      userId={userId}
     />
   );
 }
@@ -241,6 +256,51 @@ describe('VerificationForm', () => {
       expect(screen.getByLabelText('Total TTC')).toBeInTheDocument();
       expect(screen.getByLabelText('Remises')).toBeInTheDocument();
       expect(screen.getByLabelText('Annulations')).toBeInTheDocument();
+    });
+  });
+
+  describe('MarketField Integration (Story 4.6)', () => {
+    const mockMarket: Market & { id: number } = {
+      id: 1,
+      name: 'Marché Bastille',
+      userId: 'user-123',
+      createdAt: '2026-01-01T00:00:00Z',
+    };
+
+    beforeEach(() => {
+      mockUseMarketById.mockReturnValue({ market: mockMarket, isLoading: false });
+      mockUseMarkets.mockReturnValue({ markets: [mockMarket], isLoading: false });
+    });
+
+    it('should not render MarketField when userId is not provided', () => {
+      render(<FormWrapper />);
+
+      // MarketField should not be rendered without userId
+      expect(screen.queryByText('Marché')).not.toBeInTheDocument();
+      expect(screen.queryByText('Aucun marché')).not.toBeInTheDocument();
+    });
+
+    it('should render MarketField when userId is provided', () => {
+      mockUseMarketById.mockReturnValue({ market: undefined, isLoading: false });
+
+      render(<FormWrapper userId="user-123" />);
+
+      // "Marché" label should be visible
+      expect(screen.getByText('Marché')).toBeInTheDocument();
+      // MarketField shows "Aucun marché" when no market selected
+      expect(screen.getByText('Aucun marché')).toBeInTheDocument();
+    });
+
+    it('should display selected market name when marketId is set', () => {
+      render(
+        <FormWrapper
+          userId="user-123"
+          defaultValues={{ marketId: 1 }}
+        />
+      );
+
+      // Should display the market name from useMarketById
+      expect(screen.getByText('Marché Bastille')).toBeInTheDocument();
     });
   });
 });

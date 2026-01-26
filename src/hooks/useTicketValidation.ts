@@ -115,6 +115,8 @@ export function useTicketValidation(): UseTicketValidationResult {
             cancelNumber: formData.cancelNumber,
             payments: formData.payments,
             total: formData.total,
+            // Market assignment (Story 4.6)
+            marketId: formData.marketId,
             // Validation data
             status: 'validated' as TicketStatus,
             dataHash,

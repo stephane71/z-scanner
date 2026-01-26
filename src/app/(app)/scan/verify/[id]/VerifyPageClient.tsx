@@ -224,6 +224,7 @@ export function VerifyPageClient({ ticketId }: VerifyPageClientProps) {
         <VerificationForm
           form={form}
           confidence={confidence}
+          userId={userId || undefined}
           className="py-4"
         />
 

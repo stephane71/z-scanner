@@ -73,6 +73,8 @@ export const TicketVerificationSchema = z
       .array(PaymentSchema, { message: 'Au moins un mode de paiement requis' })
       .min(1, 'Au moins un mode de paiement requis'),
     total: CurrencySchema.min(0, 'Le total doit être positif'),
+    /** Optional market assignment (Story 4.6) */
+    marketId: z.number().int().positive().optional(),
   })
   .refine(
     (data) => {
@@ -132,4 +134,5 @@ export const FIELD_LABELS: Record<keyof Omit<TicketVerificationForm, 'type'>, st
   cancelNumber: 'Nb annulations',
   payments: 'Modes de paiement',
   total: 'TOTAL TTC',
+  marketId: 'Marché',
 };

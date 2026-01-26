@@ -108,6 +108,8 @@ export function useVerification({
           ? ticket.payments.map((p) => ({ mode: p.mode, value: p.value }))
           : [{ mode: "CB" as const, value: 0 }],
       total: ticket.total ?? 0,
+      // Market assignment (Story 4.6)
+      marketId: ticket.marketId,
     };
   }, [ticket]);
 
@@ -153,6 +155,8 @@ export function useVerification({
         cancelNumber: formData.cancelNumber,
         payments: formData.payments,
         total: formData.total,
+        // Market assignment (Story 4.6)
+        marketId: formData.marketId,
         ocrStatus: "pending_validation",
       });
 

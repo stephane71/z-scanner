@@ -41,3 +41,7 @@ export {
   VALIDATION_SUCCESS_DELAY,
   type ValidationSuccessProps,
 } from './ValidationSuccess';
+
+// Market selection components (Story 4.6)
+export { MarketPicker, type MarketPickerProps } from './MarketPicker';
+export { MarketField, type MarketFieldProps } from './MarketField';
