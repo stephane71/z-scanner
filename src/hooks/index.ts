@@ -98,3 +98,6 @@ export { useTicketsByMarket } from './useTicketsByMarket';
 
 // Cancel ticket hook (Story 4.7)
 export { useCancelTicket, type UseCancelTicketResult } from './useCancelTicket';
+
+// Export preview hook (Story 5.1)
+export { useExportPreview, type UseExportPreviewResult } from './useExportPreview';

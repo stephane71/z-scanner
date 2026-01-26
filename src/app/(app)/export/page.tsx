@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { Download } from 'lucide-react';
+import { Suspense } from 'react';
+import { ExportPageClient } from './ExportPageClient';
 
 export const metadata: Metadata = {
   title: 'Export - Z-Scanner',
@@ -9,21 +11,34 @@ export const metadata: Metadata = {
 
 /**
  * Export page - CSV export for accounting purposes.
- * Story 3.10: App Layout & Bottom Navigation - Placeholder page
+ * Story 5.1: Export Page & Period Selection
  *
- * This is a placeholder page that will be fully implemented in Epic 5.
- * @see Story 5.1 (export-page-period-selection) - Period selection
+ * Server component shell with client component for interactivity.
  * @see Story 5.2 (csv-export-generation) - CSV export generation
  * @see Story 5.3 (file-download) - File download functionality
  */
 export default function ExportPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-9rem)] p-4">
-      <Download className="h-16 w-16 text-muted-foreground mb-4" aria-hidden="true" />
-      <h1 className="text-xl font-semibold text-foreground mb-2">Export</h1>
-      <p className="text-muted-foreground text-center max-w-xs">
-        L&apos;export comptable CSV sera disponible dans Epic 5.
-      </p>
+    <div className="container mx-auto px-4 py-6 max-w-md">
+      <div className="flex items-center gap-3 mb-6">
+        <Download className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
+        <h1 className="text-2xl font-bold">Export Comptable</h1>
+      </div>
+
+      <Suspense
+        fallback={
+          <div className="space-y-6" data-testid="export-page-suspense">
+            <div className="space-y-4">
+              <div className="h-8 bg-muted animate-pulse rounded w-48" />
+              <div className="h-12 bg-muted animate-pulse rounded" />
+              <div className="h-12 bg-muted animate-pulse rounded" />
+            </div>
+            <div className="h-32 bg-muted animate-pulse rounded" />
+          </div>
+        }
+      >
+        <ExportPageClient />
+      </Suspense>
     </div>
   );
 }
