@@ -28,10 +28,6 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 
 const mockUseLiveQuery = useLiveQuery as ReturnType<typeof vi.fn>;
-const mockDb = db as {
-  tickets: { where: ReturnType<typeof vi.fn> };
-  markets: { get: ReturnType<typeof vi.fn> };
-};
 
 describe("useExportTickets", () => {
   beforeEach(() => {
@@ -42,7 +38,7 @@ describe("useExportTickets", () => {
     mockUseLiveQuery.mockReturnValue(undefined);
 
     const { result } = renderHook(() =>
-      useExportTickets("user-123", "2026-01-01", "2026-01-31")
+      useExportTickets("user-123", "2026-01-01", "2026-01-31"),
     );
 
     expect(result.current.isLoading).toBe(true);
@@ -53,7 +49,7 @@ describe("useExportTickets", () => {
     mockUseLiveQuery.mockReturnValue([]);
 
     const { result } = renderHook(() =>
-      useExportTickets("user-123", "2026-01-01", "2026-01-31")
+      useExportTickets("user-123", "2026-01-01", "2026-01-31"),
     );
 
     await waitFor(() => {
@@ -80,7 +76,7 @@ describe("useExportTickets", () => {
     mockUseLiveQuery.mockReturnValue(mockTickets);
 
     const { result } = renderHook(() =>
-      useExportTickets("user-123", "2026-01-01", "2026-01-31")
+      useExportTickets("user-123", "2026-01-01", "2026-01-31"),
     );
 
     await waitFor(() => {
@@ -108,7 +104,7 @@ describe("useExportTickets", () => {
     mockUseLiveQuery.mockReturnValue(mockTickets);
 
     const { result } = renderHook(() =>
-      useExportTickets("user-123", "2026-01-01", "2026-01-31")
+      useExportTickets("user-123", "2026-01-01", "2026-01-31"),
     );
 
     await waitFor(() => {
@@ -145,7 +141,7 @@ describe("useExportTickets", () => {
     mockUseLiveQuery.mockReturnValue(mockTickets);
 
     const { result } = renderHook(() =>
-      useExportTickets("user-123", "2026-01-01", "2026-01-31")
+      useExportTickets("user-123", "2026-01-01", "2026-01-31"),
     );
 
     await waitFor(() => {
@@ -161,7 +157,7 @@ describe("useExportTickets", () => {
     mockUseLiveQuery.mockReturnValue([]);
 
     const { result } = renderHook(() =>
-      useExportTickets("", "2026-01-01", "2026-01-31")
+      useExportTickets("", "2026-01-01", "2026-01-31"),
     );
 
     await waitFor(() => {
@@ -176,10 +172,11 @@ describe("useExportTickets", () => {
 
     renderHook(() => useExportTickets("user-123", "2026-01-01", "2026-01-31"));
 
-    expect(mockUseLiveQuery).toHaveBeenCalledWith(
-      expect.any(Function),
-      ["user-123", "2026-01-01", "2026-01-31"]
-    );
+    expect(mockUseLiveQuery).toHaveBeenCalledWith(expect.any(Function), [
+      "user-123",
+      "2026-01-01",
+      "2026-01-31",
+    ]);
   });
 
   it("should create one line per payment mode (multiple payments)", async () => {
@@ -210,7 +207,7 @@ describe("useExportTickets", () => {
     mockUseLiveQuery.mockReturnValue(mockExportLines);
 
     const { result } = renderHook(() =>
-      useExportTickets("user-123", "2026-01-01", "2026-01-31")
+      useExportTickets("user-123", "2026-01-01", "2026-01-31"),
     );
 
     await waitFor(() => {

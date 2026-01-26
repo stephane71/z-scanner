@@ -7,10 +7,10 @@
  * Cancellation is append-only - tickets are never deleted.
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { AlertTriangle, Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { AlertTriangle, Loader2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -18,9 +18,9 @@ import {
   SheetTitle,
   SheetDescription,
   SheetFooter,
-} from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 export interface CancellationDialogProps {
   /** Whether the dialog is open */
@@ -36,7 +36,7 @@ export function CancellationDialog({
   onOpenChange,
   onConfirm,
 }: CancellationDialogProps) {
-  const [reason, setReason] = useState('');
+  const [reason, setReason] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,10 +53,10 @@ export function CancellationDialog({
     try {
       await onConfirm(trimmedReason);
       // Clear state and close dialog on success
-      setReason('');
+      setReason("");
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      setError(err instanceof Error ? err.message : "Une erreur est survenue");
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +70,7 @@ export function CancellationDialog({
   // Reset state when dialog closes
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
-      setReason('');
+      setReason("");
       setError(null);
     }
     onOpenChange(newOpen);
