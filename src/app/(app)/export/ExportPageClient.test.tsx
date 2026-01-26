@@ -1,9 +1,10 @@
 /**
  * Tests for ExportPageClient component
  * Story 5.1: Export Page & Period Selection
+ * Story 5.2: CSV Export Generation
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { ExportPageClient } from './ExportPageClient';
 
@@ -18,9 +19,10 @@ vi.mock('@/lib/supabase/client', () => ({
   })),
 }));
 
-// Mock useExportPreview hook
-vi.mock('@/hooks/useExportPreview', () => ({
+// Mock hooks barrel export
+vi.mock('@/hooks', () => ({
   useExportPreview: vi.fn(),
+  useGenerateExport: vi.fn(),
 }));
 
 // Mock date-ranges to get consistent values
@@ -39,10 +41,11 @@ vi.mock('@/lib/utils/date-ranges', async (importOriginal) => {
   };
 });
 
-import { useExportPreview } from '@/hooks/useExportPreview';
+import { useExportPreview, useGenerateExport } from '@/hooks';
 import { createClient } from '@/lib/supabase/client';
 
 const mockUseExportPreview = useExportPreview as unknown as ReturnType<typeof vi.fn>;
+const mockUseGenerateExport = useGenerateExport as unknown as ReturnType<typeof vi.fn>;
 const mockCreateClient = createClient as unknown as ReturnType<typeof vi.fn>;
 
 // Helper to flush async effects
@@ -53,6 +56,8 @@ async function flushPromises() {
 }
 
 describe('ExportPageClient', () => {
+  const mockGenerateCsv = vi.fn();
+
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -69,6 +74,19 @@ describe('ExportPageClient', () => {
       totalAmount: 123450,
       isLoading: false,
     });
+    mockUseGenerateExport.mockReturnValue({
+      generateCsv: mockGenerateCsv,
+      isGenerating: false,
+      error: null,
+    });
+    mockGenerateCsv.mockReturnValue('mock-csv-content');
+
+    // Clean up window property
+    delete window.__pendingCsvExport;
+  });
+
+  afterEach(() => {
+    delete window.__pendingCsvExport;
   });
 
   describe('loading state', () => {
@@ -214,6 +232,95 @@ describe('ExportPageClient', () => {
 
       const exportButton = screen.getByTestId('export-button');
       expect(exportButton).toBeDisabled();
+    });
+
+    it('disables export button while generating CSV', async () => {
+      mockUseGenerateExport.mockReturnValue({
+        generateCsv: mockGenerateCsv,
+        isGenerating: true,
+        error: null,
+      });
+
+      render(<ExportPageClient />);
+
+      await flushPromises();
+
+      const exportButton = screen.getByTestId('export-button');
+      expect(exportButton).toBeDisabled();
+      expect(screen.getByText('Génération en cours...')).toBeInTheDocument();
+    });
+  });
+
+  describe('CSV generation', () => {
+    it('calls generateCsv when export button is clicked', async () => {
+      render(<ExportPageClient />);
+
+      await flushPromises();
+
+      const exportButton = screen.getByTestId('export-button');
+      fireEvent.click(exportButton);
+
+      expect(mockGenerateCsv).toHaveBeenCalled();
+    });
+
+    it('stores CSV in window.__pendingCsvExport when generated', async () => {
+      mockGenerateCsv.mockReturnValue('csv-content-test');
+
+      render(<ExportPageClient />);
+
+      await flushPromises();
+
+      const exportButton = screen.getByTestId('export-button');
+      fireEvent.click(exportButton);
+
+      expect(window.__pendingCsvExport).toBe('csv-content-test');
+    });
+
+    it('dispatches csvExportReady event when CSV is generated', async () => {
+      const eventHandler = vi.fn();
+      window.addEventListener('csvExportReady', eventHandler);
+
+      mockGenerateCsv.mockReturnValue('csv-content-event');
+
+      render(<ExportPageClient />);
+
+      await flushPromises();
+
+      const exportButton = screen.getByTestId('export-button');
+      fireEvent.click(exportButton);
+
+      expect(eventHandler).toHaveBeenCalled();
+      expect(eventHandler.mock.calls[0][0].detail.csv).toBe('csv-content-event');
+
+      window.removeEventListener('csvExportReady', eventHandler);
+    });
+
+    it('shows error message when CSV generation fails', async () => {
+      mockUseGenerateExport.mockReturnValue({
+        generateCsv: mockGenerateCsv,
+        isGenerating: false,
+        error: 'Failed to generate CSV',
+      });
+
+      render(<ExportPageClient />);
+
+      await flushPromises();
+
+      expect(screen.getByTestId('export-error')).toBeInTheDocument();
+      expect(screen.getByText('Erreur: Failed to generate CSV')).toBeInTheDocument();
+    });
+
+    it('does not store CSV when generateCsv returns null', async () => {
+      mockGenerateCsv.mockReturnValue(null);
+
+      render(<ExportPageClient />);
+
+      await flushPromises();
+
+      const exportButton = screen.getByTestId('export-button');
+      fireEvent.click(exportButton);
+
+      expect(window.__pendingCsvExport).toBeUndefined();
     });
   });
 });

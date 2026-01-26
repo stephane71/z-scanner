@@ -101,3 +101,9 @@ export { useCancelTicket, type UseCancelTicketResult } from './useCancelTicket';
 
 // Export preview hook (Story 5.1)
 export { useExportPreview, type UseExportPreviewResult } from './useExportPreview';
+
+// Export tickets hook (Story 5.2)
+export { useExportTickets } from './useExportTickets';
+
+// Generate export hook (Story 5.2)
+export { useGenerateExport } from './useGenerateExport';

@@ -30,3 +30,10 @@ export type {
 
 // Market types
 export type { Market } from './market';
+
+// Export types
+export type {
+  ExportTicket,
+  UseExportTicketsResult,
+  UseGenerateExportResult,
+} from './export';

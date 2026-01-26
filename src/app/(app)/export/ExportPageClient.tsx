@@ -3,16 +3,25 @@
 /**
  * ExportPageClient - Client component for export page
  * Story 5.1: Export Page & Period Selection
+ * Story 5.2: CSV Export Generation
  *
  * Manages date range state and displays period selector and preview.
  * Defaults to "Ce mois" preset on initial load.
+ * Generates CSV when export button is clicked.
  */
 
+// Type declaration for pending CSV export (used by Story 5.3)
+declare global {
+  interface Window {
+    __pendingCsvExport?: string;
+  }
+}
+
 import { useState, useEffect } from 'react';
-import { Download } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { useExportPreview } from '@/hooks/useExportPreview';
+import { useExportPreview, useGenerateExport } from '@/hooks';
 import { PeriodSelector } from '@/components/features/export/PeriodSelector';
 import { ExportPreviewCard } from '@/components/features/export/ExportPreviewCard';
 import {
@@ -56,6 +65,16 @@ export function ExportPageClient() {
     endDate
   );
 
+  // CSV generation hook
+  const { generateCsv, isGenerating, error: csvError } = useGenerateExport(
+    userId ?? '',
+    startDate,
+    endDate
+  );
+
+  // State for export in progress
+  const [isExporting, setIsExporting] = useState(false);
+
   function handlePresetSelect(preset: ExportPreset, range: DateRange) {
     setSelectedPreset(preset);
     setStartDate(range.start);
@@ -70,7 +89,27 @@ export function ExportPageClient() {
 
   // Determine if export is possible
   const isDateRangeValid = startDate && endDate && startDate <= endDate;
-  const canExport = ticketCount > 0 && isDateRangeValid && !isLoading;
+  const canExport = ticketCount > 0 && isDateRangeValid && !isLoading && !isGenerating && !isExporting;
+
+  /**
+   * Handle CSV export button click
+   * Generates CSV and stores it for download (Story 5.3 will trigger download)
+   */
+  function handleExport() {
+    setIsExporting(true);
+    try {
+      const csv = generateCsv();
+      if (csv) {
+        // Store CSV for Story 5.3 to trigger download
+        // For now, just store in state - download will be added in Story 5.3
+        window.__pendingCsvExport = csv;
+        // Dispatch custom event for Story 5.3 to listen to
+        window.dispatchEvent(new CustomEvent('csvExportReady', { detail: { csv } }));
+      }
+    } finally {
+      setIsExporting(false);
+    }
+  }
 
   // Loading state
   if (authLoading) {
@@ -106,16 +145,31 @@ export function ExportPageClient() {
         endDate={endDate}
       />
 
-      {/* Export Button (disabled until Story 5.2) */}
+      {/* Export Button */}
       <Button
         className="w-full min-h-[48px]"
         disabled={!canExport}
+        onClick={handleExport}
         data-testid="export-button"
       >
-        <Download className="h-5 w-5 mr-2" aria-hidden="true" />
-        Exporter en CSV
+        {isExporting || isGenerating ? (
+          <>
+            <Loader2 className="h-5 w-5 mr-2 animate-spin" aria-hidden="true" />
+            Génération en cours...
+          </>
+        ) : (
+          <>
+            <Download className="h-5 w-5 mr-2" aria-hidden="true" />
+            Exporter en CSV
+          </>
+        )}
       </Button>
-      {!canExport && ticketCount === 0 && !isLoading && (
+      {csvError && (
+        <p className="text-sm text-destructive text-center" data-testid="export-error">
+          Erreur: {csvError}
+        </p>
+      )}
+      {!canExport && ticketCount === 0 && !isLoading && !csvError && (
         <p className="text-sm text-muted-foreground text-center">
           Sélectionnez une période avec des tickets pour exporter
         </p>
