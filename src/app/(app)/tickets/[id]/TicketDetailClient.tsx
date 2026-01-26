@@ -3,21 +3,26 @@
 /**
  * TicketDetailClient - Main ticket detail view component
  * Story 4.2: Ticket Detail View
+ * Story 4.7: Ticket Cancellation (NF525 Compliant)
  *
  * Displays complete ticket information: photo, fields, NF525 info.
  * Handles loading, not found, and cancelled states.
  * Uses useTicketById for reactive data loading from IndexedDB.
  */
 
+import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTicketById } from '@/hooks/useTickets';
+import { useCancelTicket } from '@/hooks';
 import { DetailHeader } from '@/components/features/tickets/DetailHeader';
 import { TicketPhoto, TicketPhotoSkeleton } from '@/components/features/tickets/TicketPhoto';
 import { TicketFields } from '@/components/features/tickets/TicketFields';
 import { NF525Info } from '@/components/features/tickets/NF525Info';
 import { CancelledBanner } from '@/components/features/tickets/CancelledBanner';
-import { FileQuestion } from 'lucide-react';
+import { CancellationDialog } from '@/components/features/tickets/CancellationDialog';
+import { Button } from '@/components/ui/button';
+import { FileQuestion, Ban } from 'lucide-react';
 
 /**
  * Skeleton for the entire detail view
@@ -87,6 +92,8 @@ export function TicketDetailClient() {
   const ticketId = params?.id ? Number(params.id) : undefined;
 
   const { ticket, isLoading } = useTicketById(ticketId);
+  const { cancelTicket } = useCancelTicket();
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   // Loading state
   if (isLoading) {
@@ -128,7 +135,31 @@ export function TicketDetailClient() {
             validatedAt={ticket.validatedAt}
           />
         )}
+
+        {/* Cancel button (for validated tickets only - Story 4.7) */}
+        {isValidated && (
+          <Button
+            variant="destructive"
+            onClick={() => setShowCancelDialog(true)}
+            className="w-full mt-4 bg-red-600 hover:bg-red-700"
+          >
+            <Ban className="mr-2 h-4 w-4" aria-hidden="true" />
+            Annuler ce ticket
+          </Button>
+        )}
       </div>
+
+      {/* Cancellation dialog (Story 4.7) */}
+      {ticket.id && (
+        <CancellationDialog
+          open={showCancelDialog}
+          onOpenChange={setShowCancelDialog}
+          onConfirm={async (reason) => {
+            await cancelTicket(ticket.id!, reason);
+            // Stay on page - ticket will reactively update to show cancelled state
+          }}
+        />
+      )}
     </div>
   );
 }

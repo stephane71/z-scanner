@@ -170,12 +170,19 @@ export async function validateTicket(id: number): Promise<void> {
  * Uses transaction for atomicity to prevent race conditions
  * @param id - Ticket ID to cancel
  * @param reason - Cancellation reason (required for NF525)
- * @returns Promise that resolves when complete
+ * @param cancelledAt - Optional ISO 8601 timestamp (defaults to now)
+ * @returns Promise with the cancelledAt timestamp used
  */
-export async function cancelTicket(id: number, reason: string): Promise<void> {
+export async function cancelTicket(
+  id: number,
+  reason: string,
+  cancelledAt?: string
+): Promise<string> {
   if (!reason.trim()) {
     throw new Error('Cancellation reason is required (NF525 compliance)');
   }
+
+  const timestamp = cancelledAt || new Date().toISOString();
 
   await db.transaction('rw', db.tickets, async () => {
     const ticket = await db.tickets.get(id);
@@ -186,8 +193,10 @@ export async function cancelTicket(id: number, reason: string): Promise<void> {
 
     await db.tickets.update(id, {
       status: 'cancelled',
-      cancelledAt: new Date().toISOString(),
+      cancelledAt: timestamp,
       cancellationReason: reason,
     });
   });
+
+  return timestamp;
 }

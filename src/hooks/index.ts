@@ -95,3 +95,6 @@ export { useTicketsByDateRange } from './useTicketsByDateRange';
 
 // Combined date and market filter hooks (Story 4.4)
 export { useTicketsByMarket } from './useTicketsByMarket';
+
+// Cancel ticket hook (Story 4.7)
+export { useCancelTicket, type UseCancelTicketResult } from './useCancelTicket';

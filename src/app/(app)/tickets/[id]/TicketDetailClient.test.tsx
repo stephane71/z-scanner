@@ -1,16 +1,23 @@
 /**
  * TicketDetailClient component tests
  * Story 4.2: Ticket Detail View
+ * Story 4.7: Ticket Cancellation (NF525 Compliant)
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { TicketDetailClient } from './TicketDetailClient';
 import type { Ticket } from '@/types';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
   useParams: vi.fn(() => ({ id: '1' })),
+  useRouter: vi.fn(() => ({
+    push: vi.fn(),
+    back: vi.fn(),
+    refresh: vi.fn(),
+  })),
 }));
 
 // Mock useTicketById
@@ -41,6 +48,27 @@ vi.mock('@/components/features/tickets/NF525Info', () => ({
 
 vi.mock('@/components/features/tickets/CancelledBanner', () => ({
   CancelledBanner: () => <div data-testid="cancelled-banner">Cancelled</div>,
+}));
+
+vi.mock('@/components/features/tickets/CancellationDialog', () => ({
+  CancellationDialog: ({ open, onOpenChange, onConfirm }: { open: boolean; onOpenChange: (open: boolean) => void; onConfirm: (reason: string) => Promise<void> }) => (
+    open ? (
+      <div data-testid="cancellation-dialog">
+        <button onClick={() => onOpenChange(false)}>Dismiss</button>
+        <button onClick={() => onConfirm('Test reason')}>Confirm</button>
+      </div>
+    ) : null
+  ),
+}));
+
+// Mock useCancelTicket hook
+const mockCancelTicket = vi.fn();
+vi.mock('@/hooks', () => ({
+  useCancelTicket: () => ({
+    cancelTicket: mockCancelTicket,
+    isLoading: false,
+    error: null,
+  }),
 }));
 
 const mockTicket: Ticket = {
@@ -158,5 +186,55 @@ describe('TicketDetailClient', () => {
     expect(screen.getByTestId('cancelled-banner')).toBeInTheDocument();
     // NF525 info should NOT show for cancelled tickets (status !== 'validated')
     expect(screen.queryByTestId('nf525-info')).not.toBeInTheDocument();
+  });
+
+  // Story 4.7: Cancel button visibility tests
+  describe('Cancel Button (Story 4.7)', () => {
+    it('shows cancel button for validated tickets', () => {
+      mockUseTicketById.mockReturnValue({ ticket: mockTicket, isLoading: false });
+
+      render(<TicketDetailClient />);
+
+      expect(screen.getByRole('button', { name: /annuler ce ticket/i })).toBeInTheDocument();
+    });
+
+    it('hides cancel button for draft tickets', () => {
+      mockUseTicketById.mockReturnValue({
+        ticket: { ...mockTicket, status: 'draft', validatedAt: undefined },
+        isLoading: false,
+      });
+
+      render(<TicketDetailClient />);
+
+      expect(screen.queryByRole('button', { name: /annuler ce ticket/i })).not.toBeInTheDocument();
+    });
+
+    it('hides cancel button for cancelled tickets', () => {
+      mockUseTicketById.mockReturnValue({
+        ticket: {
+          ...mockTicket,
+          status: 'cancelled',
+          cancelledAt: '2026-01-16T10:00:00Z',
+          cancellationReason: 'Erreur',
+        },
+        isLoading: false,
+      });
+
+      render(<TicketDetailClient />);
+
+      expect(screen.queryByRole('button', { name: /annuler ce ticket/i })).not.toBeInTheDocument();
+    });
+
+    it('opens cancellation dialog when cancel button is clicked', async () => {
+      const user = userEvent.setup();
+      mockUseTicketById.mockReturnValue({ ticket: mockTicket, isLoading: false });
+
+      render(<TicketDetailClient />);
+
+      const cancelButton = screen.getByRole('button', { name: /annuler ce ticket/i });
+      await user.click(cancelButton);
+
+      expect(screen.getByTestId('cancellation-dialog')).toBeInTheDocument();
+    });
   });
 });

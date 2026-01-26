@@ -28,6 +28,9 @@ export { DateFilterEmpty } from './DateFilterEmpty';
 export { MarketFilter } from './MarketFilter';
 export { MarketFilterChip } from './MarketFilterChip';
 
+// Story 4.7 Components
+export { CancellationDialog } from './CancellationDialog';
+
 // Types
 export type { TicketCardProps } from './TicketCard';
 export type { TicketListProps } from './TicketList';
@@ -36,3 +39,4 @@ export type { TicketPhotoProps } from './TicketPhoto';
 export type { TicketFieldsProps } from './TicketFields';
 export type { NF525InfoProps } from './NF525Info';
 export type { CancelledBannerProps } from './CancelledBanner';
+export type { CancellationDialogProps } from './CancellationDialog';

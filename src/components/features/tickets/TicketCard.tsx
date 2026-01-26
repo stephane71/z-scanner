@@ -50,12 +50,13 @@ export function TicketCard({ ticket, onClick }: TicketCardProps) {
   );
 
   const isValidated = ticket.status === 'validated';
+  const isCancelled = ticket.status === 'cancelled';
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className="w-full p-4 border-b border-border bg-background hover:bg-muted/50 active:bg-muted transition-colors min-h-[72px] text-left"
+      className={`w-full p-4 border-b border-border bg-background hover:bg-muted/50 active:bg-muted transition-colors min-h-[72px] text-left ${isCancelled ? 'opacity-60' : ''}`}
       data-testid="ticket-card"
     >
       <div className="flex gap-3 items-center">
@@ -93,10 +94,15 @@ export function TicketCard({ ticket, onClick }: TicketCardProps) {
 
         {/* Badges and Total */}
         <div className="flex flex-col items-end gap-1 flex-shrink-0">
-          <span className="text-sm font-semibold text-foreground">
+          <span className={`text-sm font-semibold text-foreground ${isCancelled ? 'line-through' : ''}`}>
             {formattedTotal}
           </span>
           <div className="flex items-center gap-1">
+            {isCancelled && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
+                Annulé
+              </span>
+            )}
             {isValidated && <NF525Badge />}
             {ticket.id && <TicketSyncBadge ticketId={ticket.id} />}
           </div>

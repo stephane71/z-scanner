@@ -142,3 +142,35 @@ describe('TicketCard with photo', () => {
     expect(img.tagName).toBe('IMG');
   });
 });
+
+// Story 4.7: Cancelled ticket display tests
+describe('TicketCard cancelled display (Story 4.7)', () => {
+  const cancelledTicket: Ticket = {
+    ...mockTicket,
+    status: 'cancelled',
+    cancelledAt: '2026-01-16T10:00:00Z',
+    cancellationReason: 'Erreur de saisie',
+  };
+
+  it('renders "Annulé" badge for cancelled tickets', () => {
+    render(<TicketCard ticket={cancelledTicket} />);
+    expect(screen.getByText('Annulé')).toBeInTheDocument();
+  });
+
+  it('does not render NF525 badge for cancelled tickets', () => {
+    render(<TicketCard ticket={cancelledTicket} />);
+    expect(screen.queryByTestId('nf525-badge')).not.toBeInTheDocument();
+  });
+
+  it('applies muted/faded styling to cancelled ticket card', () => {
+    render(<TicketCard ticket={cancelledTicket} />);
+    const card = screen.getByTestId('ticket-card');
+    expect(card).toHaveClass('opacity-60');
+  });
+
+  it('renders total with line-through for cancelled tickets', () => {
+    render(<TicketCard ticket={cancelledTicket} />);
+    const totalElement = screen.getByText('12,50 €');
+    expect(totalElement).toHaveClass('line-through');
+  });
+});
