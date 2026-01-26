@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Settings } from 'lucide-react';
 import { LogoutButton } from '@/components/features/auth/LogoutButton';
+import { MarketListClient } from '@/components/features/settings';
 
 export const metadata: Metadata = {
   title: 'Paramètres - Z-Scanner',
@@ -9,13 +11,14 @@ export const metadata: Metadata = {
 
 /**
  * Settings page - User account and app settings
- * Story 3.10: App Layout & Bottom Navigation - Enhanced placeholder
+ * Story 3.10: App Layout & Bottom Navigation
+ * Story 4.5: Market Management (CRUD)
  *
  * Currently includes:
+ * - Mes marchés (Story 4.5)
  * - Logout button (Story 2.4)
  *
  * Will include in future:
- * - Mes marchés (Story 4.5)
  * - Synchronisation manual retry (Story 6.4)
  * - À propos section (Story 6.4)
  */
@@ -35,18 +38,20 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* Placeholder for future sections */}
-      <div className="rounded-lg border border-border bg-muted/50 p-4 text-center">
-        <p className="text-sm text-muted-foreground">
-          D&apos;autres options seront disponibles dans les prochaines mises à jour.
-        </p>
-      </div>
-
-      {/* Future sections:
-        - Mes marchés (Story 4.5)
-        - Synchronisation manual retry (Story 6.4)
-        - À propos (Story 6.4)
-      */}
+      {/* Mes marchés section (Story 4.5) */}
+      <Suspense
+        fallback={
+          <section className="mb-8">
+            <h2 className="text-lg font-semibold mb-4">Mes marchés</h2>
+            <div data-testid="market-list-skeleton" className="space-y-3">
+              <div className="h-12 bg-muted animate-pulse rounded-lg" />
+              <div className="h-12 bg-muted animate-pulse rounded-lg" />
+            </div>
+          </section>
+        }
+      >
+        <MarketListClient />
+      </Suspense>
     </div>
   );
 }

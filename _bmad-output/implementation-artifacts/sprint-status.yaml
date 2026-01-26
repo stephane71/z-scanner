@@ -90,7 +90,7 @@ epic-4-gestion-des-tickets-marches: in-progress
 4-2-ticket-detail-view: done
 4-3-filter-by-date: done
 4-4-filter-by-market: done
-4-5-market-management-crud: backlog
+4-5-market-management-crud: done
 4-6-assign-ticket-to-market: backlog
 4-7-ticket-cancellation-nf525-compliant: backlog
 
@@ -131,10 +131,10 @@ epic-6-retrospective: optional
 # Total Retrospectives: 6
 #
 # By Status:
-#   done: 22 stories (1.1-1.4, 2.1-2.5, 3.1-3.10, 4.1-4.4) + Epic 1 complete + Epic 2 complete + Epic 3 complete!
-#   backlog: 10 stories from Epics 4-6
+#   done: 23 stories (1.1-1.4, 2.1-2.5, 3.1-3.10, 4.1-4.5) + Epic 1 complete + Epic 2 complete + Epic 3 complete!
+#   backlog: 9 stories from Epics 4-6
 #
 # Next Steps:
-# 1. Create Story 4.5 (market-management-crud)
+# 1. Run create-story for Story 4.6 (assign-ticket-to-market)
 # 2. Continue Epic 4 implementation
 # ============================================================
