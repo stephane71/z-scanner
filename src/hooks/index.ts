@@ -107,3 +107,6 @@ export { useExportTickets } from './useExportTickets';
 
 // Generate export hook (Story 5.2)
 export { useGenerateExport } from './useGenerateExport';
+
+// Download CSV hook (Story 5.3)
+export { useDownloadCsv, type UseDownloadCsvResult } from './useDownloadCsv';

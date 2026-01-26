@@ -181,4 +181,50 @@ describe("useExportTickets", () => {
       ["user-123", "2026-01-01", "2026-01-31"]
     );
   });
+
+  it("should create one line per payment mode (multiple payments)", async () => {
+    // A ticket with 2 payment modes should generate 2 export lines
+    const mockExportLines = [
+      {
+        date: "2026-01-15",
+        montantTtc: 5000, // 50€ CB
+        modeReglement: "CB",
+        numeroTicket: 1234,
+        marche: "Marché de Rungis",
+        statut: "Validé" as const,
+        hash: "abc123",
+        validatedAt: "2026-01-15T14:30:00.000Z",
+      },
+      {
+        date: "2026-01-15",
+        montantTtc: 3000, // 30€ ESPECES (same ticket)
+        modeReglement: "ESPECES",
+        numeroTicket: 1234,
+        marche: "Marché de Rungis",
+        statut: "Validé" as const,
+        hash: "abc123",
+        validatedAt: "2026-01-15T14:30:00.000Z",
+      },
+    ];
+
+    mockUseLiveQuery.mockReturnValue(mockExportLines);
+
+    const { result } = renderHook(() =>
+      useExportTickets("user-123", "2026-01-01", "2026-01-31")
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    // Should have 2 lines for the same ticket (one per payment)
+    expect(result.current.tickets).toHaveLength(2);
+    expect(result.current.tickets[0].modeReglement).toBe("CB");
+    expect(result.current.tickets[0].montantTtc).toBe(5000);
+    expect(result.current.tickets[1].modeReglement).toBe("ESPECES");
+    expect(result.current.tickets[1].montantTtc).toBe(3000);
+    // Same ticket number for both lines
+    expect(result.current.tickets[0].numeroTicket).toBe(1234);
+    expect(result.current.tickets[1].numeroTicket).toBe(1234);
+  });
 });

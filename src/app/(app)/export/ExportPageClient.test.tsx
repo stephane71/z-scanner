@@ -2,6 +2,7 @@
  * Tests for ExportPageClient component
  * Story 5.1: Export Page & Period Selection
  * Story 5.2: CSV Export Generation
+ * Story 5.3: File Download
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -23,6 +24,8 @@ vi.mock('@/lib/supabase/client', () => ({
 vi.mock('@/hooks', () => ({
   useExportPreview: vi.fn(),
   useGenerateExport: vi.fn(),
+  useDownloadCsv: vi.fn(),
+  useToast: vi.fn(),
 }));
 
 // Mock date-ranges to get consistent values
@@ -41,11 +44,13 @@ vi.mock('@/lib/utils/date-ranges', async (importOriginal) => {
   };
 });
 
-import { useExportPreview, useGenerateExport } from '@/hooks';
+import { useExportPreview, useGenerateExport, useDownloadCsv, useToast } from '@/hooks';
 import { createClient } from '@/lib/supabase/client';
 
 const mockUseExportPreview = useExportPreview as unknown as ReturnType<typeof vi.fn>;
 const mockUseGenerateExport = useGenerateExport as unknown as ReturnType<typeof vi.fn>;
+const mockUseDownloadCsv = useDownloadCsv as unknown as ReturnType<typeof vi.fn>;
+const mockUseToast = useToast as unknown as ReturnType<typeof vi.fn>;
 const mockCreateClient = createClient as unknown as ReturnType<typeof vi.fn>;
 
 // Helper to flush async effects
@@ -57,6 +62,9 @@ async function flushPromises() {
 
 describe('ExportPageClient', () => {
   const mockGenerateCsv = vi.fn();
+  const mockDownloadCsv = vi.fn();
+  const mockToastSuccess = vi.fn();
+  const mockToastError = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -79,14 +87,21 @@ describe('ExportPageClient', () => {
       isGenerating: false,
       error: null,
     });
+    mockUseDownloadCsv.mockReturnValue({
+      downloadCsv: mockDownloadCsv,
+      isDownloading: false,
+      error: null,
+    });
+    mockUseToast.mockReturnValue({
+      toastSuccess: mockToastSuccess,
+      toastError: mockToastError,
+      success: mockToastSuccess,
+      error: mockToastError,
+      info: vi.fn(),
+      warning: vi.fn(),
+    });
     mockGenerateCsv.mockReturnValue('mock-csv-content');
-
-    // Clean up window property
-    delete window.__pendingCsvExport;
-  });
-
-  afterEach(() => {
-    delete window.__pendingCsvExport;
+    mockDownloadCsv.mockResolvedValue(true);
   });
 
   describe('loading state', () => {
@@ -258,41 +273,11 @@ describe('ExportPageClient', () => {
       await flushPromises();
 
       const exportButton = screen.getByTestId('export-button');
-      fireEvent.click(exportButton);
+      await act(async () => {
+        fireEvent.click(exportButton);
+      });
 
       expect(mockGenerateCsv).toHaveBeenCalled();
-    });
-
-    it('stores CSV in window.__pendingCsvExport when generated', async () => {
-      mockGenerateCsv.mockReturnValue('csv-content-test');
-
-      render(<ExportPageClient />);
-
-      await flushPromises();
-
-      const exportButton = screen.getByTestId('export-button');
-      fireEvent.click(exportButton);
-
-      expect(window.__pendingCsvExport).toBe('csv-content-test');
-    });
-
-    it('dispatches csvExportReady event when CSV is generated', async () => {
-      const eventHandler = vi.fn();
-      window.addEventListener('csvExportReady', eventHandler);
-
-      mockGenerateCsv.mockReturnValue('csv-content-event');
-
-      render(<ExportPageClient />);
-
-      await flushPromises();
-
-      const exportButton = screen.getByTestId('export-button');
-      fireEvent.click(exportButton);
-
-      expect(eventHandler).toHaveBeenCalled();
-      expect(eventHandler.mock.calls[0][0].detail.csv).toBe('csv-content-event');
-
-      window.removeEventListener('csvExportReady', eventHandler);
     });
 
     it('shows error message when CSV generation fails', async () => {
@@ -309,8 +294,61 @@ describe('ExportPageClient', () => {
       expect(screen.getByTestId('export-error')).toBeInTheDocument();
       expect(screen.getByText('Erreur: Failed to generate CSV')).toBeInTheDocument();
     });
+  });
 
-    it('does not store CSV when generateCsv returns null', async () => {
+  describe('file download (Story 5.3)', () => {
+    it('calls downloadCsv when export button is clicked and CSV is generated', async () => {
+      mockGenerateCsv.mockReturnValue('csv-download-content');
+
+      render(<ExportPageClient />);
+
+      await flushPromises();
+
+      const exportButton = screen.getByTestId('export-button');
+      await act(async () => {
+        fireEvent.click(exportButton);
+      });
+
+      expect(mockDownloadCsv).toHaveBeenCalledWith(
+        'csv-download-content',
+        '2026-01-01',
+        '2026-01-31'
+      );
+    });
+
+    it('shows success toast after successful download', async () => {
+      mockGenerateCsv.mockReturnValue('csv-success-content');
+      mockDownloadCsv.mockResolvedValue(true);
+
+      render(<ExportPageClient />);
+
+      await flushPromises();
+
+      const exportButton = screen.getByTestId('export-button');
+      await act(async () => {
+        fireEvent.click(exportButton);
+      });
+
+      expect(mockToastSuccess).toHaveBeenCalledWith('Export téléchargé avec succès');
+    });
+
+    it('shows error toast on download failure', async () => {
+      mockGenerateCsv.mockReturnValue('csv-error-content');
+      mockDownloadCsv.mockResolvedValue(false); // Download returns false on failure
+
+      render(<ExportPageClient />);
+
+      await flushPromises();
+
+      const exportButton = screen.getByTestId('export-button');
+      await act(async () => {
+        fireEvent.click(exportButton);
+      });
+
+      expect(mockToastError).toHaveBeenCalledWith('Erreur lors du téléchargement');
+    });
+
+    it('does not call downloadCsv when generateCsv returns null', async () => {
       mockGenerateCsv.mockReturnValue(null);
 
       render(<ExportPageClient />);
@@ -318,9 +356,50 @@ describe('ExportPageClient', () => {
       await flushPromises();
 
       const exportButton = screen.getByTestId('export-button');
-      fireEvent.click(exportButton);
+      await act(async () => {
+        fireEvent.click(exportButton);
+      });
 
-      expect(window.__pendingCsvExport).toBeUndefined();
+      expect(mockDownloadCsv).not.toHaveBeenCalled();
+    });
+
+    it('disables export button while downloading', async () => {
+      mockUseDownloadCsv.mockReturnValue({
+        downloadCsv: mockDownloadCsv,
+        isDownloading: true,
+        error: null,
+      });
+
+      render(<ExportPageClient />);
+
+      await flushPromises();
+
+      const exportButton = screen.getByTestId('export-button');
+      expect(exportButton).toBeDisabled();
+    });
+
+    it('allows repeated exports after completion', async () => {
+      mockGenerateCsv.mockReturnValue('csv-repeat-content');
+
+      render(<ExportPageClient />);
+
+      await flushPromises();
+
+      const exportButton = screen.getByTestId('export-button');
+
+      // First export
+      await act(async () => {
+        fireEvent.click(exportButton);
+      });
+
+      expect(mockDownloadCsv).toHaveBeenCalledTimes(1);
+
+      // Second export
+      await act(async () => {
+        fireEvent.click(exportButton);
+      });
+
+      expect(mockDownloadCsv).toHaveBeenCalledTimes(2);
     });
   });
 });

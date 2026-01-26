@@ -4,24 +4,18 @@
  * ExportPageClient - Client component for export page
  * Story 5.1: Export Page & Period Selection
  * Story 5.2: CSV Export Generation
+ * Story 5.3: File Download
  *
  * Manages date range state and displays period selector and preview.
  * Defaults to "Ce mois" preset on initial load.
- * Generates CSV when export button is clicked.
+ * Generates CSV when export button is clicked, then triggers download.
  */
-
-// Type declaration for pending CSV export (used by Story 5.3)
-declare global {
-  interface Window {
-    __pendingCsvExport?: string;
-  }
-}
 
 import { useState, useEffect } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { useExportPreview, useGenerateExport } from '@/hooks';
+import { useExportPreview, useGenerateExport, useDownloadCsv, useToast } from '@/hooks';
 import { PeriodSelector } from '@/components/features/export/PeriodSelector';
 import { ExportPreviewCard } from '@/components/features/export/ExportPreviewCard';
 import {
@@ -72,6 +66,12 @@ export function ExportPageClient() {
     endDate
   );
 
+  // Download hook (Story 5.3)
+  const { downloadCsv, isDownloading } = useDownloadCsv();
+
+  // Toast notifications (Story 5.3)
+  const { toastSuccess, toastError } = useToast();
+
   // State for export in progress
   const [isExporting, setIsExporting] = useState(false);
 
@@ -89,23 +89,30 @@ export function ExportPageClient() {
 
   // Determine if export is possible
   const isDateRangeValid = startDate && endDate && startDate <= endDate;
-  const canExport = ticketCount > 0 && isDateRangeValid && !isLoading && !isGenerating && !isExporting;
+  const canExport = ticketCount > 0 && isDateRangeValid && !isLoading && !isGenerating && !isExporting && !isDownloading;
 
   /**
    * Handle CSV export button click
-   * Generates CSV and stores it for download (Story 5.3 will trigger download)
+   * Generates CSV and triggers download with toast feedback (Story 5.3)
    */
-  function handleExport() {
+  async function handleExport() {
     setIsExporting(true);
     try {
       const csv = generateCsv();
       if (csv) {
-        // Store CSV for Story 5.3 to trigger download
-        // For now, just store in state - download will be added in Story 5.3
-        window.__pendingCsvExport = csv;
-        // Dispatch custom event for Story 5.3 to listen to
-        window.dispatchEvent(new CustomEvent('csvExportReady', { detail: { csv } }));
+        // Trigger file download (Story 5.3)
+        const success = await downloadCsv(csv, startDate, endDate);
+
+        // Show toast based on download result (Story 5.3)
+        if (success) {
+          toastSuccess('Export téléchargé avec succès');
+        } else {
+          toastError('Erreur lors du téléchargement');
+        }
       }
+    } catch {
+      // Show error toast on unexpected failure (Story 5.3)
+      toastError('Erreur lors du téléchargement');
     } finally {
       setIsExporting(false);
     }

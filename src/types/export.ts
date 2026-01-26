@@ -4,15 +4,16 @@
  */
 
 /**
- * Ticket data formatted for CSV export
+ * Payment line data formatted for CSV export
+ * One line per payment mode (a ticket with multiple payments generates multiple lines)
  * Joins ticket data with market name
  */
 export interface ExportTicket {
   /** Impression date (YYYY-MM-DD) */
   date: string;
-  /** Total amount in centimes */
+  /** Payment amount in centimes (not ticket total) */
   montantTtc: number;
-  /** Primary payment mode (first payment) */
+  /** Payment mode for this line */
   modeReglement: string;
   /** Ticket number */
   numeroTicket: number;

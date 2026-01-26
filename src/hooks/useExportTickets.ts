@@ -50,35 +50,46 @@ export function useExportTickets(
       // Sort tickets by impression date (chronological order for accountants)
       tickets.sort((a, b) => a.impressionDate.localeCompare(b.impressionDate));
 
-      // Resolve market names for each ticket
-      const exportTickets: ExportTicket[] = await Promise.all(
-        tickets.map(async (ticket) => {
-          // Resolve market name if marketId exists
-          let marketName = "";
-          if (ticket.marketId) {
-            const market = await db.markets.get(ticket.marketId);
-            marketName = market?.name ?? "";
+      // Resolve market names and create one line per payment
+      const exportTickets: ExportTicket[] = [];
+
+      for (const ticket of tickets) {
+        // Resolve market name if marketId exists
+        let marketName = "";
+        if (ticket.marketId) {
+          const market = await db.markets.get(ticket.marketId);
+          marketName = market?.name ?? "";
+        }
+
+        // Common fields for all payment lines of this ticket
+        const commonFields = {
+          date: ticket.impressionDate,
+          numeroTicket: ticket.ticketNumber,
+          marche: marketName,
+          statut: (ticket.status === "validated" ? "Validé" : "Annulé") as "Validé" | "Annulé",
+          hash: ticket.dataHash,
+          // Use validatedAt for validated tickets, cancelledAt for cancelled tickets
+          validatedAt: ticket.validatedAt ?? ticket.cancelledAt ?? "",
+        };
+
+        // Create one line per payment mode
+        if (ticket.payments && ticket.payments.length > 0) {
+          for (const payment of ticket.payments) {
+            exportTickets.push({
+              ...commonFields,
+              montantTtc: payment.value,
+              modeReglement: payment.mode,
+            });
           }
-
-          // Get primary payment mode (first payment) or empty string
-          const modeReglement =
-            ticket.payments && ticket.payments.length > 0
-              ? ticket.payments[0].mode
-              : "";
-
-          return {
-            date: ticket.impressionDate,
-            montantTtc: ticket.total,
-            modeReglement,
-            numeroTicket: ticket.ticketNumber,
-            marche: marketName,
-            statut: ticket.status === "validated" ? "Validé" : "Annulé",
-            hash: ticket.dataHash,
-            // Use validatedAt for validated tickets, cancelledAt for cancelled tickets
-            validatedAt: ticket.validatedAt ?? ticket.cancelledAt ?? "",
-          } satisfies ExportTicket;
-        })
-      );
+        } else {
+          // Ticket with no payments - still export with 0 amount and empty mode
+          exportTickets.push({
+            ...commonFields,
+            montantTtc: 0,
+            modeReglement: "",
+          });
+        }
+      }
 
       return exportTickets;
     },
