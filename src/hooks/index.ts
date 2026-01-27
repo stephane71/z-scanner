@@ -123,3 +123,13 @@ export {
   type PeriodStats,
   type SalesByPeriodResult,
 } from './useSalesByPeriod';
+
+// Sales by market hook (Story 6.3)
+export {
+  useSalesByMarket,
+  aggregateMarketStats,
+  sortByRevenue,
+  filterTicketsForMarket,
+  type MarketStats,
+  type SalesByMarketResult,
+} from './useSalesByMarket';

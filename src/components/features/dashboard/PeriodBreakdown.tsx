@@ -3,17 +3,12 @@
  * Story 6.2: Sales by Period
  *
  * Expandable/collapsible component showing daily/weekly/monthly breakdown.
- * Uses useState for ephemeral UI state (expand/collapse).
+ * Controlled component - parent manages accordion state (only one open at a time).
  */
 
 'use client';
 
 import { ChevronDown } from 'lucide-react';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { formatCurrency } from '@/lib/utils/format';
 import { cn } from '@/lib/utils';
 
@@ -27,13 +22,20 @@ export interface BreakdownItem {
   revenue: number;
 }
 
-interface PeriodBreakdownProps {
+interface PeriodBreakdownTriggerProps {
   /** Title shown on the trigger button */
   title: string;
-  /** Breakdown items to display */
-  items: BreakdownItem[];
+  /** Whether this breakdown is currently open */
+  isOpen: boolean;
+  /** Callback when toggle is clicked */
+  onToggle: () => void;
   /** Comparison label for screen readers (e.g., "par jour") */
   comparisonLabel: string;
+}
+
+interface PeriodBreakdownContentProps {
+  /** Breakdown items to display */
+  items: BreakdownItem[];
 }
 
 /**
@@ -52,37 +54,82 @@ function BreakdownItemRow({ item }: { item: BreakdownItem }) {
 }
 
 /**
- * Period Breakdown - expandable section with detailed stats
+ * Period Breakdown Trigger - button to expand/collapse breakdown
+ * Controlled component for accordion behavior
  */
-export function PeriodBreakdown({ title, items, comparisonLabel }: PeriodBreakdownProps) {
+export function PeriodBreakdownTrigger({ title, isOpen, onToggle, comparisonLabel }: PeriodBreakdownTriggerProps) {
   return (
-    <Collapsible>
-      <CollapsibleTrigger
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={isOpen}
+      className={cn(
+        'flex w-full items-center justify-center gap-1',
+        'text-sm text-muted-foreground hover:text-foreground',
+        'transition-colors duration-200',
+        'min-h-[48px] px-2 rounded-md hover:bg-muted/50',
+        isOpen && 'bg-muted/50 text-foreground'
+      )}
+    >
+      <span>{title}</span>
+      <ChevronDown
         className={cn(
-          'flex w-full items-center justify-between',
-          'text-sm text-muted-foreground hover:text-foreground',
-          'transition-colors duration-200',
-          'min-h-[48px] px-2 rounded-md hover:bg-muted/50'
+          'h-4 w-4 transition-transform duration-200',
+          isOpen && 'rotate-180'
         )}
-      >
-        <span>{title}</span>
-        <ChevronDown
-          className="h-4 w-4 transition-transform duration-200 [[data-state=open]>&]:rotate-180"
-          aria-hidden="true"
-        />
-        <span className="sr-only">Afficher {comparisonLabel}</span>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="pt-2">
-        {items.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-2 text-center">Aucune donnée disponible</p>
-        ) : (
-          <div className="space-y-0">
-            {items.map((item) => (
-              <BreakdownItemRow key={item.label} item={item} />
-            ))}
-          </div>
-        )}
-      </CollapsibleContent>
-    </Collapsible>
+        aria-hidden="true"
+      />
+      <span className="sr-only">Afficher {comparisonLabel}</span>
+    </button>
+  );
+}
+
+/**
+ * Period Breakdown Content - displays breakdown items full-width
+ */
+export function PeriodBreakdownContent({ items }: PeriodBreakdownContentProps) {
+  if (items.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground py-2 text-center">Aucune donnée disponible</p>
+    );
+  }
+
+  return (
+    <div className="space-y-0">
+      {items.map((item) => (
+        <BreakdownItemRow key={item.label} item={item} />
+      ))}
+    </div>
+  );
+}
+
+// Legacy export for backwards compatibility with tests
+export interface PeriodBreakdownProps {
+  title: string;
+  items: BreakdownItem[];
+  comparisonLabel: string;
+  isOpen?: boolean;
+  onToggle?: () => void;
+}
+
+/**
+ * Period Breakdown - legacy component, now controlled
+ * @deprecated Use PeriodBreakdownTrigger and PeriodBreakdownContent separately
+ */
+export function PeriodBreakdown({ title, items, comparisonLabel, isOpen = false, onToggle }: PeriodBreakdownProps) {
+  return (
+    <div>
+      <PeriodBreakdownTrigger
+        title={title}
+        isOpen={isOpen}
+        onToggle={onToggle ?? (() => {})}
+        comparisonLabel={comparisonLabel}
+      />
+      {isOpen && (
+        <div className="pt-2">
+          <PeriodBreakdownContent items={items} />
+        </div>
+      )}
+    </div>
   );
 }

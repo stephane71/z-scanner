@@ -4,27 +4,36 @@
  *
  * Displays sales statistics grouped by period (week, month, quarter)
  * with trend comparisons to previous periods.
+ *
+ * UX: Only one breakdown can be open at a time (accordion behavior).
+ * Breakdown content renders full-width below the period columns.
  */
 
 'use client';
 
+import { useState } from 'react';
 import { Calendar, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSalesByPeriod, type PeriodStats } from '@/hooks';
 import { formatCurrency } from '@/lib/utils/format';
 import { cn } from '@/lib/utils';
-import { PeriodBreakdown } from './PeriodBreakdown';
+import { PeriodBreakdownTrigger, PeriodBreakdownContent, type BreakdownItem } from './PeriodBreakdown';
 
 interface SalesByPeriodCardProps {
   userId: string;
 }
+
+type OpenBreakdown = 'week' | 'month' | 'quarter' | null;
 
 interface PeriodSectionProps {
   label: string;
   stats: PeriodStats;
   comparisonLabel: string;
   breakdownLabel: string;
+  periodKey: OpenBreakdown;
+  openBreakdown: OpenBreakdown;
+  onToggleBreakdown: (key: OpenBreakdown) => void;
 }
 
 /**
@@ -85,9 +94,20 @@ function TrendIndicator({ trend, comparisonLabel }: { trend: number; comparisonL
 }
 
 /**
- * Period section displaying stats for a single period with expandable breakdown
+ * Period section displaying stats for a single period with expandable breakdown trigger
  */
-function PeriodSection({ label, stats, comparisonLabel, breakdownLabel }: PeriodSectionProps) {
+function PeriodSection({
+  label,
+  stats,
+  comparisonLabel,
+  breakdownLabel,
+  periodKey,
+  openBreakdown,
+  onToggleBreakdown,
+}: PeriodSectionProps) {
+  const hasBreakdown = stats.breakdown && stats.breakdown.length > 0;
+  const isOpen = openBreakdown === periodKey;
+
   return (
     <div className="space-y-1 text-center">
       <h3 className="text-sm font-medium text-muted-foreground">{label}</h3>
@@ -100,11 +120,12 @@ function PeriodSection({ label, stats, comparisonLabel, breakdownLabel }: Period
         {formatCurrency(stats.revenue)}
       </p>
       <TrendIndicator trend={stats.trend} comparisonLabel={comparisonLabel} />
-      {stats.breakdown && stats.breakdown.length > 0 && (
+      {hasBreakdown && (
         <div className="pt-2">
-          <PeriodBreakdown
+          <PeriodBreakdownTrigger
             title="Détail"
-            items={stats.breakdown}
+            isOpen={isOpen}
+            onToggle={() => onToggleBreakdown(isOpen ? null : periodKey)}
             comparisonLabel={breakdownLabel}
           />
         </div>
@@ -115,13 +136,29 @@ function PeriodSection({ label, stats, comparisonLabel, breakdownLabel }: Period
 
 /**
  * Sales by Period Card - displays period-based sales statistics
+ * With accordion behavior: only one breakdown open at a time
  */
 export function SalesByPeriodCard({ userId }: SalesByPeriodCardProps) {
   const { thisWeek, thisMonth, thisQuarter, isLoading } = useSalesByPeriod(userId);
+  const [openBreakdown, setOpenBreakdown] = useState<OpenBreakdown>(null);
 
   if (isLoading) {
     return <SalesByPeriodLoadingSkeleton />;
   }
+
+  // Get the breakdown items for the currently open section
+  const getOpenBreakdownItems = (): BreakdownItem[] => {
+    switch (openBreakdown) {
+      case 'week':
+        return thisWeek.breakdown ?? [];
+      case 'month':
+        return thisMonth.breakdown ?? [];
+      case 'quarter':
+        return thisQuarter.breakdown ?? [];
+      default:
+        return [];
+    }
+  };
 
   return (
     <Card>
@@ -138,20 +175,35 @@ export function SalesByPeriodCard({ userId }: SalesByPeriodCardProps) {
             stats={thisWeek}
             comparisonLabel="la semaine dernière"
             breakdownLabel="par jour"
+            periodKey="week"
+            openBreakdown={openBreakdown}
+            onToggleBreakdown={setOpenBreakdown}
           />
           <PeriodSection
             label="Ce mois"
             stats={thisMonth}
             comparisonLabel="le mois dernier"
             breakdownLabel="par semaine"
+            periodKey="month"
+            openBreakdown={openBreakdown}
+            onToggleBreakdown={setOpenBreakdown}
           />
           <PeriodSection
             label="Ce trimestre"
             stats={thisQuarter}
             comparisonLabel="le trimestre dernier"
             breakdownLabel="par mois"
+            periodKey="quarter"
+            openBreakdown={openBreakdown}
+            onToggleBreakdown={setOpenBreakdown}
           />
         </div>
+        {/* Breakdown content renders full-width below the grid */}
+        {openBreakdown && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <PeriodBreakdownContent items={getOpenBreakdownItems()} />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -1,6 +1,7 @@
 /**
  * Tests for BottomNavigation Component - Story 3.10
  * App Layout & Bottom Navigation
+ * Story 6.3 Enhancement: Scanner replaced with Analytics (Pilotage)
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -16,24 +17,25 @@ vi.mock('next/navigation', () => ({
 describe('BottomNavigation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockPathname.mockReturnValue('/scan');
+    mockPathname.mockReturnValue('/analytics');
   });
 
-  it('renders all 4 navigation items', () => {
+  it('renders all 4 navigation items in correct order', () => {
     render(<BottomNavigation />);
 
-    expect(screen.getByRole('link', { name: /scanner/i })).toBeInTheDocument();
+    // Pilotage is now first, then Historique
+    expect(screen.getByRole('link', { name: /pilotage/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /historique/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /export/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /param/i })).toBeInTheDocument();
   });
 
   it('highlights the active tab based on pathname', () => {
-    mockPathname.mockReturnValue('/scan');
+    mockPathname.mockReturnValue('/analytics');
     render(<BottomNavigation />);
 
-    const scannerLink = screen.getByRole('link', { name: /scanner/i });
-    expect(scannerLink).toHaveAttribute('aria-current', 'page');
+    const analyticsLink = screen.getByRole('link', { name: /pilotage/i });
+    expect(analyticsLink).toHaveAttribute('aria-current', 'page');
 
     const ticketsLink = screen.getByRole('link', { name: /historique/i });
     expect(ticketsLink).not.toHaveAttribute('aria-current', 'page');
@@ -42,11 +44,11 @@ describe('BottomNavigation', () => {
   it('uses Link components for client-side navigation', () => {
     render(<BottomNavigation />);
 
-    const scannerLink = screen.getByRole('link', { name: /scanner/i });
-    expect(scannerLink).toHaveAttribute('href', '/scan');
-
     const ticketsLink = screen.getByRole('link', { name: /historique/i });
     expect(ticketsLink).toHaveAttribute('href', '/tickets');
+
+    const analyticsLink = screen.getByRole('link', { name: /pilotage/i });
+    expect(analyticsLink).toHaveAttribute('href', '/analytics');
 
     const exportLink = screen.getByRole('link', { name: /export/i });
     expect(exportLink).toHaveAttribute('href', '/export');
@@ -61,6 +63,14 @@ describe('BottomNavigation', () => {
 
     const ticketsLink = screen.getByRole('link', { name: /historique/i });
     expect(ticketsLink).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('handles nested routes - /analytics/detail highlights Pilotage', () => {
+    mockPathname.mockReturnValue('/analytics/detail');
+    render(<BottomNavigation />);
+
+    const analyticsLink = screen.getByRole('link', { name: /pilotage/i });
+    expect(analyticsLink).toHaveAttribute('aria-current', 'page');
   });
 
   it('has minimum 48px touch targets', () => {

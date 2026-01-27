@@ -5,14 +5,12 @@
  * Story 4.1: Ticket List (Historique)
  * Story 4.3: Filter by Date (with URL persistence)
  * Story 4.4: Filter by Market (with URL persistence)
- * Story 6.1: Activity Dashboard
- * Story 6.2: Sales by Period
  *
  * Fetches user authentication and displays ticket list with
  * loading states, empty state handling, date and market filtering.
  * Filter state is persisted in URL params for navigation support.
- * Includes dashboard summary card showing monthly activity and
- * sales by period card showing week/month/quarter statistics.
+ *
+ * Note: Dashboard cards (Story 6.x) are now on the dedicated /analytics page.
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
@@ -26,7 +24,6 @@ import { FilterChip } from '@/components/features/tickets/FilterChip';
 import { DateFilterEmpty } from '@/components/features/tickets/DateFilterEmpty';
 import { MarketFilter } from '@/components/features/tickets/MarketFilter';
 import { MarketFilterChip } from '@/components/features/tickets/MarketFilterChip';
-import { DashboardSummaryCard, SalesByPeriodCard } from '@/components/features/dashboard';
 
 export function TicketsPageClient() {
   const router = useRouter();
@@ -40,8 +37,10 @@ export function TicketsPageClient() {
   const userIdChangeTimeRef = useRef<number>(0);
 
   // Read date filter from URL params (Story 4.3 - URL persistence)
+  // No default - shows all tickets when no filter is set
   const startDate = searchParams.get('start');
   const endDate = searchParams.get('end');
+  const hasDateFilter = startDate !== null && endDate !== null;
 
   // Read market filter from URL params (Story 4.4 - URL persistence)
   const marketsParam = searchParams.get('markets');
@@ -148,7 +147,8 @@ export function TicketsPageClient() {
     updateUrlParams(startDate, endDate, []);
   }
 
-  const isDateFilterActive = startDate !== null || endDate !== null;
+  // Date filter is active when explicitly set in URL
+  const isDateFilterActive = hasDateFilter;
   const isMarketFilterActive = marketIds.length > 0;
   const isAnyFilterActive = isDateFilterActive || isMarketFilterActive;
 
@@ -188,14 +188,8 @@ export function TicketsPageClient() {
   }
 
   // Show empty state when no tickets (no filter active = user has zero tickets)
-  // Dashboard is shown on empty state to encourage first ticket scan
   if (tickets.length === 0 && !isAnyFilterActive) {
-    return (
-      <div className="px-4 py-4 space-y-4">
-        <DashboardSummaryCard userId={userId} />
-        <SalesByPeriodCard userId={userId} />
-      </div>
-    );
+    return <EmptyState />;
   }
 
   // Filter UI header
@@ -228,29 +222,19 @@ export function TicketsPageClient() {
     </div>
   );
 
-  // Dashboard cards always visible when user has tickets or filter active
-  const dashboardSection = (
-    <div className="px-4 pt-4 space-y-4">
-      <DashboardSummaryCard userId={userId} />
-      <SalesByPeriodCard userId={userId} />
-    </div>
-  );
-
   // Show date filter empty state when filter is active but no results
   if (tickets.length === 0 && isAnyFilterActive) {
     return (
       <>
-        {dashboardSection}
         {filterHeader}
         <DateFilterEmpty />
       </>
     );
   }
 
-  // Show ticket list with dashboard and filter header
+  // Show ticket list with filter header
   return (
     <>
-      {dashboardSection}
       {filterHeader}
       <TicketList tickets={tickets} isLoading={false} />
     </>

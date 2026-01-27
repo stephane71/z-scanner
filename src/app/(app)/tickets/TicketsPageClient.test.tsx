@@ -3,8 +3,8 @@
  * Story 4.1: Ticket List (Historique)
  * Story 4.3: Filter by Date (with URL persistence)
  * Story 4.4: Filter by Market (with URL persistence)
- * Story 6.1: Activity Dashboard
- * Story 6.2: Sales by Period
+ *
+ * Note: Dashboard cards (Story 6.x) are now on the dedicated /analytics page.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -129,16 +129,6 @@ vi.mock('@/components/features/tickets/MarketFilterChip', () => ({
   ),
 }));
 
-// Mock dashboard components (Story 6.1, Story 6.2)
-vi.mock('@/components/features/dashboard', () => ({
-  DashboardSummaryCard: ({ userId }: { userId: string }) => (
-    <div data-testid="dashboard-summary-card">Dashboard for {userId}</div>
-  ),
-  SalesByPeriodCard: ({ userId }: { userId: string }) => (
-    <div data-testid="sales-by-period-card">Sales by Period for {userId}</div>
-  ),
-}));
-
 const mockTickets: Ticket[] = [
   {
     id: 1,
@@ -195,19 +185,18 @@ describe('TicketsPageClient', () => {
     });
   });
 
-  it('shows dashboard with empty state when user has no tickets', async () => {
+  it('shows empty state when user has no tickets', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
     mockUseTicketsByMarket.mockReturnValue({ tickets: [], isLoading: false });
 
     render(<TicketsPageClient />);
 
     await waitFor(() => {
-      // Dashboard should be shown (with empty state message inside)
-      expect(screen.getByTestId('dashboard-summary-card')).toBeInTheDocument();
+      expect(screen.getByTestId('empty-state')).toBeInTheDocument();
     });
   });
 
-  it('shows ticket list with dashboard when user has tickets', async () => {
+  it('shows ticket list when user has tickets', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
     mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
 
@@ -216,8 +205,6 @@ describe('TicketsPageClient', () => {
     await waitFor(() => {
       expect(screen.getByTestId('ticket-list')).toBeInTheDocument();
       expect(screen.getByText('Tickets: 1')).toBeInTheDocument();
-      // Dashboard should also be visible (Story 6.1)
-      expect(screen.getByTestId('dashboard-summary-card')).toBeInTheDocument();
     });
   });
 
@@ -228,7 +215,13 @@ describe('TicketsPageClient', () => {
     render(<TicketsPageClient />);
 
     await waitFor(() => {
-      expect(mockUseTicketsByMarket).toHaveBeenCalledWith('user-abc', null, null, []);
+      // No default dates when no URL params - shows all tickets
+      expect(mockUseTicketsByMarket).toHaveBeenCalledWith(
+        'user-abc',
+        null,
+        null,
+        []
+      );
     });
   });
 
@@ -419,11 +412,11 @@ describe('TicketsPageClient', () => {
       expect(mockPush).toHaveBeenCalledWith('/tickets', { scroll: false });
     });
 
-    it('reads market filter from URL and passes to hook', async () => {
+    it('reads market filter from URL and passes to hook with null dates', async () => {
       mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
       mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
 
-      // Set URL params
+      // Set URL params (only market, no dates - should pass null)
       mockSearchParams = new URLSearchParams('markets=1,3');
 
       render(<TicketsPageClient />);

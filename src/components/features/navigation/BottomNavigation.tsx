@@ -3,10 +3,12 @@
  * App Layout & Bottom Navigation
  *
  * Provides bottom tab bar for main app sections:
- * - Scanner (Camera icon) - /scan
  * - Historique (List icon) - /tickets
+ * - Pilotage (BarChart3 icon) - /analytics
  * - Export (Download icon) - /export
  * - Paramètres (Settings icon) - /settings
+ *
+ * Note: Scanner is now accessed via FloatingScanButton (FAB)
  *
  * Features:
  * - Fixed bottom positioning with safe area handling
@@ -21,15 +23,16 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Camera, List, Download, Settings } from 'lucide-react';
+import { List, BarChart3, Download, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
  * Navigation items configuration
  * Each item maps to a main app section
+ * Scanner is accessed via FloatingScanButton (FAB) instead
  */
 const navItems = [
-  { href: '/scan', icon: Camera, label: 'Scanner' },
+  { href: '/analytics', icon: BarChart3, label: 'Pilotage' },
   { href: '/tickets', icon: List, label: 'Historique' },
   { href: '/export', icon: Download, label: 'Export' },
   { href: '/settings', icon: Settings, label: 'Paramètres' },

@@ -47,10 +47,19 @@ export function useTicketsByMarket(
       }
 
       // Filter by market if specified
+      // Market ID 0 is a special marker for "unassigned" (marketId = null)
       if (marketIds.length > 0) {
-        allTickets = allTickets.filter(
-          (ticket) => ticket.marketId && marketIds.includes(ticket.marketId)
-        );
+        const includesUnassigned = marketIds.includes(0);
+        const actualMarketIds = marketIds.filter((id) => id !== 0);
+
+        allTickets = allTickets.filter((ticket) => {
+          // Check for unassigned tickets (marketId is null or undefined)
+          if (!ticket.marketId) {
+            return includesUnassigned;
+          }
+          // Check for assigned tickets
+          return actualMarketIds.includes(ticket.marketId);
+        });
       }
 
       // Sort by createdAt descending (most recent first)

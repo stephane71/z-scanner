@@ -1,6 +1,7 @@
 /**
  * useTicketsByMarket hook tests
  * Story 4.4: Filter by Market
+ * Story 6.3: Sales by Market (unassigned filter support with marketId=0)
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -172,5 +173,48 @@ describe('useTicketsByMarket', () => {
     const result = await capturedQueryFn!();
 
     expect(result).toHaveLength(0);
+  });
+
+  describe('Unassigned tickets filter (Story 6.3)', () => {
+    it('filters unassigned tickets using marketId=0 as marker', async () => {
+      // marketId=0 is a special marker for "unassigned" tickets
+      renderHook(() => useTicketsByMarket('user-123', null, null, [0]));
+
+      expect(capturedQueryFn).not.toBeNull();
+      const result = await capturedQueryFn!();
+
+      // Should return only tickets with marketId = undefined/null (id=4)
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe(4);
+      expect(result[0].marketId).toBeUndefined();
+    });
+
+    it('combines unassigned filter with market filter', async () => {
+      // Should return unassigned tickets AND tickets with marketId=1
+      renderHook(() => useTicketsByMarket('user-123', null, null, [0, 1]));
+
+      expect(capturedQueryFn).not.toBeNull();
+      const result = await capturedQueryFn!();
+
+      // id=1: marketId=1, id=3: marketId=1, id=4: marketId=undefined
+      expect(result).toHaveLength(3);
+
+      // Check we have both assigned and unassigned
+      const hasUnassigned = result.some((t) => !t.marketId);
+      const hasMarket1 = result.some((t) => t.marketId === 1);
+      expect(hasUnassigned).toBe(true);
+      expect(hasMarket1).toBe(true);
+    });
+
+    it('excludes unassigned when only specific markets are requested', async () => {
+      renderHook(() => useTicketsByMarket('user-123', null, null, [1, 2]));
+
+      expect(capturedQueryFn).not.toBeNull();
+      const result = await capturedQueryFn!();
+
+      // Should not include unassigned ticket (id=4)
+      expect(result).toHaveLength(3);
+      expect(result.every((t) => t.marketId !== undefined)).toBe(true);
+    });
   });
 });
