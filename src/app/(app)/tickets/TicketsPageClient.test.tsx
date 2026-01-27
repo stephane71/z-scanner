@@ -4,6 +4,7 @@
  * Story 4.3: Filter by Date (with URL persistence)
  * Story 4.4: Filter by Market (with URL persistence)
  * Story 6.1: Activity Dashboard
+ * Story 6.2: Sales by Period
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -128,10 +129,13 @@ vi.mock('@/components/features/tickets/MarketFilterChip', () => ({
   ),
 }));
 
-// Mock dashboard component (Story 6.1)
+// Mock dashboard components (Story 6.1, Story 6.2)
 vi.mock('@/components/features/dashboard', () => ({
   DashboardSummaryCard: ({ userId }: { userId: string }) => (
     <div data-testid="dashboard-summary-card">Dashboard for {userId}</div>
+  ),
+  SalesByPeriodCard: ({ userId }: { userId: string }) => (
+    <div data-testid="sales-by-period-card">Sales by Period for {userId}</div>
   ),
 }));
 

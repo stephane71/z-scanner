@@ -5,6 +5,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
+  getThisWeek,
+  getLastWeek,
   getThisMonth,
   getLastMonth,
   getThisQuarter,
@@ -22,6 +24,61 @@ describe('date-ranges utilities', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  describe('getThisWeek', () => {
+    it('returns Monday-Sunday of current week (Monday as first day)', () => {
+      // 2026-01-26 is a Monday, so week is Jan 26 - Feb 1
+      vi.setSystemTime(new Date('2026-01-26T12:00:00.000Z'));
+      const result = getThisWeek();
+      expect(result.start).toBe('2026-01-26'); // Monday
+      expect(result.end).toBe('2026-02-01'); // Sunday
+    });
+
+    it('returns correct week when today is mid-week (Wednesday)', () => {
+      vi.setSystemTime(new Date('2026-01-28T12:00:00.000Z'));
+      const result = getThisWeek();
+      expect(result.start).toBe('2026-01-26'); // Monday
+      expect(result.end).toBe('2026-02-01'); // Sunday
+    });
+
+    it('returns correct week when today is Sunday', () => {
+      vi.setSystemTime(new Date('2026-02-01T12:00:00.000Z'));
+      const result = getThisWeek();
+      expect(result.start).toBe('2026-01-26'); // Monday
+      expect(result.end).toBe('2026-02-01'); // Sunday
+    });
+
+    it('handles year boundary (week crossing Dec/Jan)', () => {
+      vi.setSystemTime(new Date('2025-12-31T12:00:00.000Z')); // Wednesday
+      const result = getThisWeek();
+      expect(result.start).toBe('2025-12-29'); // Monday
+      expect(result.end).toBe('2026-01-04'); // Sunday
+    });
+  });
+
+  describe('getLastWeek', () => {
+    it('returns previous Monday-Sunday', () => {
+      // 2026-01-26 is Monday, last week is Jan 19-25
+      vi.setSystemTime(new Date('2026-01-26T12:00:00.000Z'));
+      const result = getLastWeek();
+      expect(result.start).toBe('2026-01-19'); // Monday
+      expect(result.end).toBe('2026-01-25'); // Sunday
+    });
+
+    it('returns correct last week when today is mid-week', () => {
+      vi.setSystemTime(new Date('2026-01-28T12:00:00.000Z'));
+      const result = getLastWeek();
+      expect(result.start).toBe('2026-01-19'); // Monday
+      expect(result.end).toBe('2026-01-25'); // Sunday
+    });
+
+    it('handles year boundary (last week in previous year)', () => {
+      vi.setSystemTime(new Date('2026-01-05T12:00:00.000Z')); // Monday
+      const result = getLastWeek();
+      expect(result.start).toBe('2025-12-29'); // Monday in Dec
+      expect(result.end).toBe('2026-01-04'); // Sunday in Jan
+    });
   });
 
   describe('getThisMonth', () => {

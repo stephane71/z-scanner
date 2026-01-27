@@ -113,3 +113,13 @@ export { useDownloadCsv, type UseDownloadCsvResult } from './useDownloadCsv';
 
 // Dashboard stats hook (Story 6.1)
 export { useDashboardStats, type DashboardStats } from './useDashboardStats';
+
+// Sales by period hook (Story 6.2)
+export {
+  useSalesByPeriod,
+  calculateTrend,
+  filterTicketsForPeriod,
+  aggregatePeriodStats,
+  type PeriodStats,
+  type SalesByPeriodResult,
+} from './useSalesByPeriod';

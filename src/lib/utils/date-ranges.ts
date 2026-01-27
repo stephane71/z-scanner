@@ -39,6 +39,58 @@ function formatLocalDate(date: Date): string {
 }
 
 /**
+ * Get the Monday and Sunday of the current week (ISO week: Monday=1, Sunday=7)
+ * Story 6.2: Sales by Period
+ */
+export function getThisWeek(): DateRange {
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+  // Convert to ISO: Monday=0, Tuesday=1, ..., Sunday=6
+  const isoDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+  // Monday of this week
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - isoDay);
+
+  // Sunday of this week (6 days after Monday)
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  return {
+    start: formatLocalDate(monday),
+    end: formatLocalDate(sunday),
+  };
+}
+
+/**
+ * Get the Monday and Sunday of the previous week
+ * Story 6.2: Sales by Period
+ */
+export function getLastWeek(): DateRange {
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+  // Convert to ISO: Monday=0, Tuesday=1, ..., Sunday=6
+  const isoDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+  // Monday of this week
+  const thisMonday = new Date(now);
+  thisMonday.setDate(now.getDate() - isoDay);
+
+  // Monday of last week (7 days before this Monday)
+  const lastMonday = new Date(thisMonday);
+  lastMonday.setDate(thisMonday.getDate() - 7);
+
+  // Sunday of last week (6 days after last Monday)
+  const lastSunday = new Date(lastMonday);
+  lastSunday.setDate(lastMonday.getDate() + 6);
+
+  return {
+    start: formatLocalDate(lastMonday),
+    end: formatLocalDate(lastSunday),
+  };
+}
+
+/**
  * Get the first and last day of the current month
  */
 export function getThisMonth(): DateRange {

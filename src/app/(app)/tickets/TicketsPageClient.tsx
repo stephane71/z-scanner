@@ -6,11 +6,13 @@
  * Story 4.3: Filter by Date (with URL persistence)
  * Story 4.4: Filter by Market (with URL persistence)
  * Story 6.1: Activity Dashboard
+ * Story 6.2: Sales by Period
  *
  * Fetches user authentication and displays ticket list with
  * loading states, empty state handling, date and market filtering.
  * Filter state is persisted in URL params for navigation support.
- * Includes dashboard summary card showing monthly activity.
+ * Includes dashboard summary card showing monthly activity and
+ * sales by period card showing week/month/quarter statistics.
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
@@ -24,7 +26,7 @@ import { FilterChip } from '@/components/features/tickets/FilterChip';
 import { DateFilterEmpty } from '@/components/features/tickets/DateFilterEmpty';
 import { MarketFilter } from '@/components/features/tickets/MarketFilter';
 import { MarketFilterChip } from '@/components/features/tickets/MarketFilterChip';
-import { DashboardSummaryCard } from '@/components/features/dashboard';
+import { DashboardSummaryCard, SalesByPeriodCard } from '@/components/features/dashboard';
 
 export function TicketsPageClient() {
   const router = useRouter();
@@ -189,8 +191,9 @@ export function TicketsPageClient() {
   // Dashboard is shown on empty state to encourage first ticket scan
   if (tickets.length === 0 && !isAnyFilterActive) {
     return (
-      <div className="px-4 py-4">
+      <div className="px-4 py-4 space-y-4">
         <DashboardSummaryCard userId={userId} />
+        <SalesByPeriodCard userId={userId} />
       </div>
     );
   }
@@ -225,10 +228,11 @@ export function TicketsPageClient() {
     </div>
   );
 
-  // Dashboard card always visible when user has tickets or filter active
+  // Dashboard cards always visible when user has tickets or filter active
   const dashboardSection = (
-    <div className="px-4 pt-4">
+    <div className="px-4 pt-4 space-y-4">
       <DashboardSummaryCard userId={userId} />
+      <SalesByPeriodCard userId={userId} />
     </div>
   );
 
