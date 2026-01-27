@@ -3,6 +3,7 @@
  * Story 4.1: Ticket List (Historique)
  * Story 4.3: Filter by Date (with URL persistence)
  * Story 4.4: Filter by Market (with URL persistence)
+ * Story 6.1: Activity Dashboard
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -127,6 +128,13 @@ vi.mock('@/components/features/tickets/MarketFilterChip', () => ({
   ),
 }));
 
+// Mock dashboard component (Story 6.1)
+vi.mock('@/components/features/dashboard', () => ({
+  DashboardSummaryCard: ({ userId }: { userId: string }) => (
+    <div data-testid="dashboard-summary-card">Dashboard for {userId}</div>
+  ),
+}));
+
 const mockTickets: Ticket[] = [
   {
     id: 1,
@@ -183,18 +191,19 @@ describe('TicketsPageClient', () => {
     });
   });
 
-  it('shows empty state when user has no tickets', async () => {
+  it('shows dashboard with empty state when user has no tickets', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
     mockUseTicketsByMarket.mockReturnValue({ tickets: [], isLoading: false });
 
     render(<TicketsPageClient />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('empty-state')).toBeInTheDocument();
+      // Dashboard should be shown (with empty state message inside)
+      expect(screen.getByTestId('dashboard-summary-card')).toBeInTheDocument();
     });
   });
 
-  it('shows ticket list when user has tickets', async () => {
+  it('shows ticket list with dashboard when user has tickets', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
     mockUseTicketsByMarket.mockReturnValue({ tickets: mockTickets, isLoading: false });
 
@@ -203,6 +212,8 @@ describe('TicketsPageClient', () => {
     await waitFor(() => {
       expect(screen.getByTestId('ticket-list')).toBeInTheDocument();
       expect(screen.getByText('Tickets: 1')).toBeInTheDocument();
+      // Dashboard should also be visible (Story 6.1)
+      expect(screen.getByTestId('dashboard-summary-card')).toBeInTheDocument();
     });
   });
 

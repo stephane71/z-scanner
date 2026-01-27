@@ -110,3 +110,6 @@ export { useGenerateExport } from './useGenerateExport';
 
 // Download CSV hook (Story 5.3)
 export { useDownloadCsv, type UseDownloadCsvResult } from './useDownloadCsv';
+
+// Dashboard stats hook (Story 6.1)
+export { useDashboardStats, type DashboardStats } from './useDashboardStats';

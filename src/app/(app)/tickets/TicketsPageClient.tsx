@@ -5,10 +5,12 @@
  * Story 4.1: Ticket List (Historique)
  * Story 4.3: Filter by Date (with URL persistence)
  * Story 4.4: Filter by Market (with URL persistence)
+ * Story 6.1: Activity Dashboard
  *
  * Fetches user authentication and displays ticket list with
  * loading states, empty state handling, date and market filtering.
  * Filter state is persisted in URL params for navigation support.
+ * Includes dashboard summary card showing monthly activity.
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
@@ -22,6 +24,7 @@ import { FilterChip } from '@/components/features/tickets/FilterChip';
 import { DateFilterEmpty } from '@/components/features/tickets/DateFilterEmpty';
 import { MarketFilter } from '@/components/features/tickets/MarketFilter';
 import { MarketFilterChip } from '@/components/features/tickets/MarketFilterChip';
+import { DashboardSummaryCard } from '@/components/features/dashboard';
 
 export function TicketsPageClient() {
   const router = useRouter();
@@ -183,8 +186,13 @@ export function TicketsPageClient() {
   }
 
   // Show empty state when no tickets (no filter active = user has zero tickets)
+  // Dashboard is shown on empty state to encourage first ticket scan
   if (tickets.length === 0 && !isAnyFilterActive) {
-    return <EmptyState />;
+    return (
+      <div className="px-4 py-4">
+        <DashboardSummaryCard userId={userId} />
+      </div>
+    );
   }
 
   // Filter UI header
@@ -217,19 +225,28 @@ export function TicketsPageClient() {
     </div>
   );
 
+  // Dashboard card always visible when user has tickets or filter active
+  const dashboardSection = (
+    <div className="px-4 pt-4">
+      <DashboardSummaryCard userId={userId} />
+    </div>
+  );
+
   // Show date filter empty state when filter is active but no results
   if (tickets.length === 0 && isAnyFilterActive) {
     return (
       <>
+        {dashboardSection}
         {filterHeader}
         <DateFilterEmpty />
       </>
     );
   }
 
-  // Show ticket list with filter header
+  // Show ticket list with dashboard and filter header
   return (
     <>
+      {dashboardSection}
       {filterHeader}
       <TicketList tickets={tickets} isLoading={false} />
     </>
