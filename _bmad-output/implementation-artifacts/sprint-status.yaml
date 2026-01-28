@@ -114,11 +114,11 @@ epic-5-retrospective: optional
 # FRs: FR26, FR27, FR28, FR29
 # Stories: 4
 # ------------------------------------------------------------
-epic-6-dashboard-insights: in-progress
+epic-6-dashboard-insights: done
 
 6-1-activity-dashboard: done
 6-2-sales-by-period: done
-6-3-sales-by-market: review
+6-3-sales-by-market: done
 6-4-settings-page: done
 
 epic-6-retrospective: optional

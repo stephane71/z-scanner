@@ -1,6 +1,6 @@
 # Story 6.3: Sales by Market
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -554,3 +554,4 @@ N/A - All 1229 tests passed after code review fixes
 | 2026-01-27 | UI/Navigation restructuring: Created dedicated /analytics page, FloatingScanButton FAB, restructured BottomNavigation | Claude Opus 4.5 |
 | 2026-01-27 | Bug fixes: PeriodBreakdown accordion behavior, MarketRow URL parameter (?markets= not ?market=), useTicketsByMarket marketId=0 marker | Claude Opus 4.5 |
 | 2026-01-27 | Code review: Updated story File List with 14 missing files, updated Tasks 5-10, updated Completion Notes | Claude Opus 4.5 |
+| 2026-01-28 | **Final code review verification** - All 54 tests pass, implementation committed (7dde801), status → done | Claude Opus 4.5 |
